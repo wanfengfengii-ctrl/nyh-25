@@ -21,6 +21,7 @@ export interface Preset {
   latitude: number;
   date: string;
   timeHours: number;
+  gnomonLength: number;
   createdAt: number;
 }
 
@@ -31,6 +32,7 @@ export interface SundialState {
   timeHours: number;
   gnomonLength: number;
   showTrack: boolean;
+  showCurrentPoint: boolean;
   compareMode: boolean;
   comparePresetId: string | null;
 }

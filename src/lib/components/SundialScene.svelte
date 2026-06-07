@@ -5,7 +5,17 @@
   import { get } from 'svelte/store';
   import type { SundialType, ShadowPoint } from '$lib/types';
 
-  const { config, solarPosition, sunVisible, currentShadow, shadowTrack, hourMarks } = sundialStore;
+  const {
+    config,
+    solarPosition,
+    sunVisible,
+    currentShadow,
+    shadowTrack,
+    hourMarks,
+    compareShadow,
+    compareShadowTrack,
+    comparePreset
+  } = sundialStore;
 
   let containerRef: HTMLDivElement | null = null;
 
@@ -19,10 +29,12 @@
   let dialPlate: THREE.Mesh;
   let dialPlateGroup: THREE.Group;
   let shadowMesh: THREE.Mesh;
+  let compareShadowMesh: THREE.Mesh;
   let trackLine: THREE.Line;
+  let compareTrackLine: THREE.Line;
   let hourMarkGroup: THREE.Group;
 
-  let isMounted = false;
+  let isMounted = $state(false);
 
   function initScene(container: HTMLDivElement) {
     const width = container.clientWidth;
@@ -118,6 +130,16 @@
     shadowMesh.visible = false;
     dialPlateGroup.add(shadowMesh);
 
+    const compareShadowGeo = new THREE.ConeGeometry(0.02, 2, 8);
+    const compareShadowMat = new THREE.MeshBasicMaterial({
+      color: 0x3b82f6,
+      transparent: true,
+      opacity: 0.5
+    });
+    compareShadowMesh = new THREE.Mesh(compareShadowGeo, compareShadowMat);
+    compareShadowMesh.visible = false;
+    dialPlateGroup.add(compareShadowMesh);
+
     const trackGeo = new THREE.BufferGeometry();
     const trackMat = new THREE.LineBasicMaterial({
       color: 0xf59e0b,
@@ -126,6 +148,15 @@
     });
     trackLine = new THREE.Line(trackGeo, trackMat);
     dialPlateGroup.add(trackLine);
+
+    const compareTrackGeo = new THREE.BufferGeometry();
+    const compareTrackMat = new THREE.LineBasicMaterial({
+      color: 0x3b82f6,
+      transparent: true,
+      opacity: 0.6
+    });
+    compareTrackLine = new THREE.Line(compareTrackGeo, compareTrackMat);
+    dialPlateGroup.add(compareTrackLine);
 
     const compassGroup = new THREE.Group();
     const compassMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
@@ -248,67 +279,83 @@
     updateShadow();
   }
 
+  function positionShadowMesh(
+    mesh: THREE.Mesh,
+    shadow: ShadowPoint,
+    type: SundialType,
+    latitude: number
+  ) {
+    const shadowLen = Math.min(shadow.length, 4);
+    mesh.scale.y = shadowLen / 2;
+    
+    const angle = shadow.angle * Math.PI / 180;
+    
+    if (type === 'horizontal') {
+      mesh.rotation.x = Math.PI / 2;
+      mesh.position.x = Math.sin(angle) * shadowLen / 2;
+      mesh.position.z = Math.cos(angle) * shadowLen / 2;
+      mesh.position.y = 0.05;
+    } else if (type === 'equatorial') {
+      mesh.position.y = 0.8 + 0.05;
+      mesh.rotation.x = Math.PI / 2 - (90 - latitude) * Math.PI / 180;
+      const localAngle = angle;
+      mesh.position.x = Math.sin(localAngle) * shadowLen / 2;
+      mesh.position.z = Math.cos(localAngle) * shadowLen / 2 * Math.cos((90 - latitude) * Math.PI / 180);
+    } else if (type === 'vertical') {
+      mesh.rotation.x = 0;
+      mesh.rotation.y = -angle;
+      mesh.position.z = shadowLen / 2;
+      mesh.position.y = 1.5;
+      mesh.position.x = Math.sin(angle) * shadowLen / 2;
+    }
+  }
+
   function updateShadow() {
     const shadow = get(currentShadow);
     const visible = get(sunVisible);
     const cfg = get(config);
 
-    if (!visible || !shadow) {
+    if (!visible || !shadow || !cfg.showCurrentPoint) {
       shadowMesh.visible = false;
-      return;
+    } else {
+      shadowMesh.visible = true;
+      positionShadowMesh(shadowMesh, shadow, cfg.type, cfg.latitude);
     }
 
-    shadowMesh.visible = true;
-
-    const shadowLen = Math.min(shadow.length, 4);
-    shadowMesh.scale.y = shadowLen / 2;
-    
-    const angle = shadow.angle * Math.PI / 180;
-    
-    if (cfg.type === 'horizontal') {
-      shadowMesh.rotation.x = Math.PI / 2;
-      shadowMesh.position.x = Math.sin(angle) * shadowLen / 2;
-      shadowMesh.position.z = Math.cos(angle) * shadowLen / 2;
-      shadowMesh.position.y = 0.05;
-    } else if (cfg.type === 'equatorial') {
-      shadowMesh.position.y = 0.8 + 0.05;
-      shadowMesh.rotation.x = Math.PI / 2 - (90 - cfg.latitude) * Math.PI / 180;
-      const localAngle = angle;
-      shadowMesh.position.x = Math.sin(localAngle) * shadowLen / 2;
-      shadowMesh.position.z = Math.cos(localAngle) * shadowLen / 2 * Math.cos((90 - cfg.latitude) * Math.PI / 180);
-    } else if (cfg.type === 'vertical') {
-      shadowMesh.rotation.x = 0;
-      shadowMesh.rotation.y = -angle;
-      shadowMesh.position.z = shadowLen / 2;
-      shadowMesh.position.y = 1.5;
-      shadowMesh.position.x = Math.sin(angle) * shadowLen / 2;
+    const compShadow = get(compareShadow);
+    const compPreset = get(comparePreset);
+    if (!cfg.compareMode || !compShadow || !compPreset || !cfg.showCurrentPoint) {
+      compareShadowMesh.visible = false;
+    } else {
+      compareShadowMesh.visible = true;
+      positionShadowMesh(
+        compareShadowMesh,
+        compShadow,
+        compPreset.type,
+        compPreset.latitude
+      );
     }
   }
 
-  function updateTrackLine() {
-    const cfg = get(config);
-    const track = get(shadowTrack);
-    const showTrack = cfg.showTrack;
-
-    if (!showTrack || !track || track.length === 0) {
-      trackLine.visible = false;
-      return;
-    }
-
-    trackLine.visible = true;
+  function buildTrackLine(
+    line: THREE.Line,
+    track: ShadowPoint[],
+    type: SundialType,
+    latitude: number
+  ) {
     const positions = new Float32Array(track.length * 3);
 
     for (let i = 0; i < track.length; i++) {
-      const p = track[i] as ShadowPoint;
+      const p = track[i];
       const angle = p.angle * Math.PI / 180;
       const dist = Math.min(p.length, 4);
 
-      if (cfg.type === 'horizontal') {
+      if (type === 'horizontal') {
         positions[i * 3] = Math.sin(angle) * dist;
         positions[i * 3 + 1] = 0.05;
         positions[i * 3 + 2] = Math.cos(angle) * dist;
-      } else if (cfg.type === 'equatorial') {
-        const latRad = (90 - cfg.latitude) * Math.PI / 180;
+      } else if (type === 'equatorial') {
+        const latRad = (90 - latitude) * Math.PI / 180;
         positions[i * 3] = Math.sin(angle) * dist;
         positions[i * 3 + 1] = 0.8 + Math.sin(latRad) * dist * Math.cos(angle);
         positions[i * 3 + 2] = Math.cos(angle) * dist * Math.cos(latRad);
@@ -319,14 +366,51 @@
       }
     }
 
-    trackLine.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    trackLine.geometry.computeBoundingSphere();
+    line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    line.geometry.computeBoundingSphere();
+  }
+
+  function updateTrackLine() {
+    const cfg = get(config);
+    const track = get(shadowTrack);
+
+    if (!cfg.showTrack || !track || track.length === 0) {
+      trackLine.visible = false;
+    } else {
+      trackLine.visible = true;
+      buildTrackLine(trackLine, track, cfg.type, cfg.latitude);
+    }
+
+    const compTrack = get(compareShadowTrack);
+    const compPreset = get(comparePreset);
+    if (!cfg.compareMode || !compTrack || compTrack.length === 0 || !compPreset || !cfg.showTrack) {
+      compareTrackLine.visible = false;
+    } else {
+      compareTrackLine.visible = true;
+      buildTrackLine(
+        compareTrackLine,
+        compTrack,
+        compPreset.type,
+        compPreset.latitude
+      );
+    }
   }
 
   $effect(() => {
     if (!isMounted) return;
+    const cfg = $config;
+    const solarPos = $solarPosition;
+    const visible = $sunVisible;
+    const shadow = $currentShadow;
+    const track = $shadowTrack;
+    const compShadow = $compareShadow;
+    const compTrack = $compareShadowTrack;
+    const compPreset = $comparePreset;
+    const marks = $hourMarks;
+
     updateSundialType();
     updateSunPosition();
+    updateShadow();
     updateTrackLine();
   });
 
@@ -338,6 +422,7 @@
 
     updateSundialType();
     updateSunPosition();
+    updateShadow();
     updateTrackLine();
 
     return () => {
@@ -352,6 +437,13 @@
     <div class="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-800/80 backdrop-blur-sm
                 rounded-lg border border-slate-600/50 text-sm text-slate-300 z-10">
       太阳位于地平线以下
+    </div>
+  {/if}
+  
+  {#if $config.compareMode && $comparePreset}
+    <div class="absolute top-4 right-4 px-3 py-1.5 bg-blue-900/60 backdrop-blur-sm
+                rounded-lg border border-blue-500/40 text-xs text-blue-300 z-10">
+      对比: {$comparePreset.name}
     </div>
   {/if}
   

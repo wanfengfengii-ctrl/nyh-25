@@ -54,14 +54,16 @@
     }
   }
 
-  function handleDelete(e: Event, id: string) {
-    e.stopPropagation();
+  function handleDelete(id: string) {
     deletePreset(id);
   }
 
-  function handleCompare(e: Event, id: string) {
-    e.stopPropagation();
+  function handleCompare(id: string) {
     toggleCompare(id);
+  }
+
+  function handleLoad(id: string) {
+    loadPreset(id);
   }
 
   function getCompareBtnClass(presetId: string): string {
@@ -75,11 +77,11 @@
 
   function getPresetItemClass(presetId: string): string {
     const cfg = get(config);
-    const base = 'p-3 rounded-lg border cursor-pointer transition-all ';
+    const base = 'p-3 rounded-lg border transition-all ';
     if (cfg.comparePresetId === presetId) {
       return base + 'bg-blue-900/20 border-blue-500/30';
     }
-    return base + 'bg-slate-700/30 border-slate-600/30 hover:bg-slate-700/50';
+    return base + 'bg-slate-700/30 border-slate-600/30';
   }
 </script>
 
@@ -137,12 +139,12 @@
       </div>
     {:else}
       {#each $presets as preset (preset.id)}
-        <div
-          class={getPresetItemClass(preset.id)}
-          onclick={() => loadPreset(preset.id)}
-        >
+        <div class={getPresetItemClass(preset.id)}>
           <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
+            <button
+              class="flex-1 min-w-0 text-left mr-2"
+              onclick={() => handleLoad(preset.id)}
+            >
               <div class="font-medium text-sm text-slate-100 truncate">{preset.name}</div>
               <div class="text-xs text-slate-400 mt-1 space-y-0.5">
                 <div class="flex gap-3">
@@ -154,18 +156,18 @@
                   <span>{formatTime(preset.timeHours)}</span>
                 </div>
               </div>
-            </div>
-            <div class="flex items-center gap-1 ml-2 flex-shrink-0">
+            </button>
+            <div class="flex items-center gap-1 flex-shrink-0">
               <button
                 class={getCompareBtnClass(preset.id)}
-                onclick={(e) => handleCompare(e, preset.id)}
+                onclick={() => handleCompare(preset.id)}
                 title="对比"
               >
                 <Copy class="w-4 h-4" />
               </button>
               <button
                 class="p-1.5 rounded-md hover:bg-red-900/30 text-slate-400 hover:text-red-400 transition-colors"
-                onclick={(e) => handleDelete(e, preset.id)}
+                onclick={() => handleDelete(preset.id)}
                 title="删除"
               >
                 <Trash2 class="w-4 h-4" />

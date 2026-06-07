@@ -1,10 +1,20 @@
 <script lang="ts">
   import { sundialStore } from '$lib/stores/sundialStore';
-  import { Activity, Eye } from 'lucide-svelte';
+  import { Activity, Eye, EyeOff, Circle } from 'lucide-svelte';
   import type { ShadowPoint } from '$lib/types';
   import { get } from 'svelte/store';
 
-  const { config, shadowTrack, currentShadow, sunVisible, setShowTrack } = sundialStore;
+  const {
+    config,
+    shadowTrack,
+    currentShadow,
+    sunVisible,
+    compareShadow,
+    compareShadowTrack,
+    comparePreset,
+    setShowTrack,
+    setShowCurrentPoint
+  } = sundialStore;
 
   const svgSize = 240;
   const padding = 20;
@@ -20,15 +30,16 @@
 
   function getScale(): number {
     const track = get(shadowTrack);
-    if (!track || track.length === 0) return 0.05;
-    const maxX = Math.max(...track.map((p: ShadowPoint) => Math.abs(p.x)));
-    const maxY = Math.max(...track.map((p: ShadowPoint) => Math.abs(p.y)));
+    const compareTrack = get(compareShadowTrack);
+    const allTracks = [...(track || []), ...(compareTrack || [])];
+    if (!allTracks || allTracks.length === 0) return 0.05;
+    const maxX = Math.max(...allTracks.map((p: ShadowPoint) => Math.abs(p.x)));
+    const maxY = Math.max(...allTracks.map((p: ShadowPoint) => Math.abs(p.y)));
     const maxVal = Math.max(maxX, maxY) || 1;
     return (viewSize / 2 / maxVal) * 0.9;
   }
 
-  function getTrackPath(): string {
-    const track = get(shadowTrack);
+  function getTrackPath(track: ShadowPoint[] | null | undefined): string {
     if (!track || track.length === 0) return '';
     const scale = getScale();
     return track.map((p: ShadowPoint, i: number) => {
@@ -38,8 +49,7 @@
     }).join(' ');
   }
 
-  function getCurrentPos() {
-    const shadow = get(currentShadow);
+  function getCurrentPos(shadow: ShadowPoint | null | undefined) {
     const visible = get(sunVisible);
     const scale = getScale();
     if (!visible || !shadow) {
@@ -51,24 +61,21 @@
     };
   }
 
-  function getTrackBtnClass(): string {
-    const show = get(config).showTrack;
-    const base = 'px-3 py-1 text-xs rounded-md transition-colors flex items-center gap-1 ';
-    if (show) {
-      return base + 'bg-amber-500/20 text-amber-500';
-    }
-    return base + 'bg-slate-700/30 text-slate-400';
+  function toggleTrack() {
+    setShowTrack(!get(config).showTrack);
   }
 
-  function getShadowLength(): string {
-    const shadow = get(currentShadow);
+  function toggleCurrentPoint() {
+    setShowCurrentPoint(!get(config).showCurrentPoint);
+  }
+
+  function getShadowLength(shadow: ShadowPoint | null | undefined): string {
     const visible = get(sunVisible);
     if (!visible || !shadow) return '--';
     return shadow.length.toFixed(2);
   }
 
-  function getShadowAngle(): string {
-    const shadow = get(currentShadow);
+  function getShadowAngle(shadow: ShadowPoint | null | undefined): string {
     const visible = get(sunVisible);
     if (!visible || !shadow) return '--';
     return shadow.angle.toFixed(1) + '°';
@@ -80,10 +87,6 @@
     { x: padding - 8, y: centerY + 4, label: 'W', align: 'end' },
     { x: svgSize - padding + 8, y: centerY + 4, label: 'E', align: 'start' }
   ];
-
-  function toggleTrack() {
-    setShowTrack(!get(config).showTrack);
-  }
 </script>
 
 <div class="glass-card p-5">
@@ -92,13 +95,26 @@
       <Activity class="w-4 h-4" />
       影子轨迹
     </h3>
-    <button
-      onclick={toggleTrack}
-      class={getTrackBtnClass()}
-    >
-      <Eye class="w-3 h-3" />
-      {$config.showTrack ? '显示' : '隐藏'}
-    </button>
+    <div class="flex gap-1">
+      <button
+        onclick={toggleTrack}
+        class="px-2 py-1 text-xs rounded-md transition-colors flex items-center gap-1
+               {$config.showTrack ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-700/30 text-slate-400'}"
+        title="显示/隐藏轨迹线"
+      >
+        <Eye class="w-3 h-3" />
+        轨迹
+      </button>
+      <button
+        onclick={toggleCurrentPoint}
+        class="px-2 py-1 text-xs rounded-md transition-colors flex items-center gap-1
+               {$config.showCurrentPoint ? 'bg-red-500/20 text-red-400' : 'bg-slate-700/30 text-slate-400'}"
+        title="显示/隐藏当前位置"
+      >
+        <Circle class="w-3 h-3" />
+        当前
+      </button>
+    </div>
   </div>
 
   <div class="flex justify-center">
@@ -108,7 +124,18 @@
           <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3" />
           <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
         </radialGradient>
+        <radialGradient id="compareTrackGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+        </radialGradient>
         <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="compareGlow">
           <feGaussianBlur stdDeviation="2" result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
@@ -135,8 +162,18 @@
         </text>
       {/each}
 
+      {#if $config.compareMode && $compareShadowTrack && $config.showTrack}
+        <path d={getTrackPath($compareShadowTrack)}
+              fill="none"
+              stroke="#3b82f6"
+              stroke-width="2"
+              stroke-dasharray="6,4"
+              filter="url(#compareGlow)"
+              opacity="0.7" />
+      {/if}
+
       {#if $config.showTrack}
-        <path d={getTrackPath()}
+        <path d={getTrackPath($shadowTrack)}
               fill="none"
               stroke="#f59e0b"
               stroke-width="2"
@@ -146,13 +183,36 @@
 
       <circle cx={centerX} cy={centerY} r="4" fill="#94a3b8" />
 
-      {#if $sunVisible && $currentShadow && $config.showTrack}
-        <line x1={centerX} y1={centerY} x2={getCurrentPos().x} y2={getCurrentPos().y}
+      {#if $config.compareMode && $compareShadow && $config.showCurrentPoint}
+        <line x1={centerX} y1={centerY}
+              x2={getCurrentPos($compareShadow).x}
+              y2={getCurrentPos($compareShadow).y}
+              stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7" />
+        <circle cx={getCurrentPos($compareShadow).x}
+                cy={getCurrentPos($compareShadow).y}
+                r="15" fill="url(#compareTrackGlow)" />
+        <circle cx={getCurrentPos($compareShadow).x}
+                cy={getCurrentPos($compareShadow).y}
+                r="5" fill="#3b82f6" filter="url(#compareGlow)" />
+        <circle cx={getCurrentPos($compareShadow).x}
+                cy={getCurrentPos($compareShadow).y}
+                r="2" fill="#ffffff" />
+      {/if}
+
+      {#if $sunVisible && $currentShadow && $config.showCurrentPoint}
+        <line x1={centerX} y1={centerY}
+              x2={getCurrentPos($currentShadow).x}
+              y2={getCurrentPos($currentShadow).y}
               stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7" />
-        
-        <circle cx={getCurrentPos().x} cy={getCurrentPos().y} r="15" fill="url(#trackGlow)" />
-        <circle cx={getCurrentPos().x} cy={getCurrentPos().y} r="5" fill="#ef4444" filter="url(#glow)" />
-        <circle cx={getCurrentPos().x} cy={getCurrentPos().y} r="2" fill="#ffffff" />
+        <circle cx={getCurrentPos($currentShadow).x}
+                cy={getCurrentPos($currentShadow).y}
+                r="15" fill="url(#trackGlow)" />
+        <circle cx={getCurrentPos($currentShadow).x}
+                cy={getCurrentPos($currentShadow).y}
+                r="5" fill="#ef4444" filter="url(#glow)" />
+        <circle cx={getCurrentPos($currentShadow).x}
+                cy={getCurrentPos($currentShadow).y}
+                r="2" fill="#ffffff" />
       {/if}
     </svg>
   </div>
@@ -160,13 +220,23 @@
   <div class="mt-4 grid grid-cols-2 gap-3 text-center">
     <div class="bg-slate-700/30 rounded-lg p-2">
       <div class="text-xs text-slate-400">影子长度</div>
-      <div class="font-mono text-sm text-slate-200">{getShadowLength()}</div>
+      <div class="font-mono text-sm text-slate-200">{getShadowLength($currentShadow)}</div>
     </div>
     <div class="bg-slate-700/30 rounded-lg p-2">
       <div class="text-xs text-slate-400">影子角度</div>
-      <div class="font-mono text-sm text-slate-200">{getShadowAngle()}</div>
+      <div class="font-mono text-sm text-slate-200">{getShadowAngle($currentShadow)}</div>
     </div>
   </div>
+
+  {#if $config.compareMode && $comparePreset}
+    <div class="mt-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+      <div class="text-xs text-blue-400 font-medium mb-1">对比方案: {$comparePreset.name}</div>
+      <div class="text-xs text-slate-400 flex gap-3">
+        <span>长度: {getShadowLength($compareShadow)}</span>
+        <span>角度: {getShadowAngle($compareShadow)}</span>
+      </div>
+    </div>
+  {/if}
 
   <div class="mt-3 text-center text-xs text-slate-500">
     当前时间: <span class="font-mono text-slate-300">{formatTime($config.timeHours)}</span>

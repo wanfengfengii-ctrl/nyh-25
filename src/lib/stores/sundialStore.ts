@@ -30,6 +30,7 @@ function createInitialState(): SundialState {
     timeHours: now.getHours() + now.getMinutes() / 60,
     gnomonLength: 1,
     showTrack: true,
+    showCurrentPoint: true,
     compareMode: false,
     comparePresetId: null
   };
@@ -88,6 +89,35 @@ function createSundialStore() {
     return getHourMarks($config.type, $config.latitude, $config.gnomonLength);
   });
 
+  const comparePreset = derived([config, presets], ([$config, $presets]) => {
+    if (!$config.compareMode || !$config.comparePresetId) return null;
+    return $presets.find((p) => p.id === $config.comparePresetId) || null;
+  });
+
+  const compareShadow = derived([comparePreset], ([$preset]) => {
+    if (!$preset) return null;
+    const date = new Date($preset.date);
+    const hours = Math.floor($preset.timeHours);
+    const minutes = Math.floor(($preset.timeHours - hours) * 60);
+    date.setHours(hours, minutes, 0, 0);
+    const solarPos = getSolarPosition(date, $preset.latitude, 0);
+    const visible = isSunVisible(date, $preset.latitude, 0);
+    if (!visible) return null;
+    return getShadow($preset.type, solarPos, $preset.latitude, $preset.gnomonLength || 1);
+  });
+
+  const compareShadowTrack = derived([comparePreset], ([$preset]) => {
+    if (!$preset) return [];
+    const date = new Date($preset.date);
+    return getShadowTrackPoints(
+      $preset.type,
+      date,
+      $preset.latitude,
+      $preset.gnomonLength || 1,
+      120
+    );
+  });
+
   function setType(type: SundialType) {
     config.update((s) => ({ ...s, type }));
   }
@@ -114,6 +144,10 @@ function createSundialStore() {
     config.update((s) => ({ ...s, showTrack: show }));
   }
 
+  function setShowCurrentPoint(show: boolean) {
+    config.update((s) => ({ ...s, showCurrentPoint: show }));
+  }
+
   function setCompareMode(enabled: boolean) {
     config.update((s) => ({ ...s, compareMode: enabled }));
   }
@@ -137,6 +171,7 @@ function createSundialStore() {
       latitude: $config.latitude,
       date: $config.date,
       timeHours: $config.timeHours,
+      gnomonLength: $config.gnomonLength,
       createdAt: Date.now()
     };
     
@@ -155,7 +190,8 @@ function createSundialStore() {
         type: preset.type,
         latitude: preset.latitude,
         date: preset.date,
-        timeHours: preset.timeHours
+        timeHours: preset.timeHours,
+        gnomonLength: preset.gnomonLength
       }));
     }
   }
@@ -191,12 +227,16 @@ function createSundialStore() {
     currentShadow,
     shadowTrack,
     hourMarks,
+    comparePreset,
+    compareShadow,
+    compareShadowTrack,
     setType,
     setLatitude,
     setDate,
     setTimeHours,
     setGnomonLength,
     setShowTrack,
+    setShowCurrentPoint,
     setCompareMode,
     setComparePreset,
     savePreset,
