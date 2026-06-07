@@ -5,7 +5,7 @@
 
   const { updateRecord, addTag, removeTag } = measurementStore;
   import type { MeasurementRecord } from '$lib/types';
-  import { formatTimeFromHours } from '$lib/utils/calibration';
+  import { formatTimeFromHours } from '$lib/utils/date';
   import { createEventDispatcher } from 'svelte';
 
   export let record: MeasurementRecord;

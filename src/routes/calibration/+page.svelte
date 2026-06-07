@@ -21,17 +21,31 @@
   import MeasurementHistory from '$lib/components/MeasurementHistory.svelte';
   import MeasurementCompare from '$lib/components/MeasurementCompare.svelte';
   import RecordDetailModal from '$lib/components/RecordDetailModal.svelte';
-  import { performCalibration, getTheoreticalSolarPosition } from '$lib/utils/calibration';
-  import { createEmptyPhotoAnalysis, extractPhotoMetadata } from '$lib/utils/photoAnalysis';
+  import { getTheoreticalSolarPosition } from '$lib/services/calibrationService';
+  import { extractPhotoMetadata } from '$lib/services/photoAnalysisService';
+  import { calibrationStore } from '$lib/stores/calibrationStore';
   import { measurementStore } from '$lib/stores/measurementStore';
 
   const {
     activeRecords,
-    addRecord,
   } = measurementStore;
+
+  const {
+    input,
+    result,
+    photoAnalysis,
+    isCalculating,
+    currentStep,
+    calibrateAsync,
+    resetInput,
+    setCurrentStep,
+    setPhotoAnalysis,
+    applyPhotoAnalysisToInput,
+    saveRecord,
+    loadRecord,
+  } = calibrationStore;
+
   import type {
-    CalibrationInput as CalibrationInputType,
-    CalibrationResult as CalibrationResultType,
     PhotoAnalysisResult,
     MeasurementRecord,
   } from '$lib/types';
@@ -41,73 +55,22 @@
   const DEFAULT_LONGITUDE = 116.4;
   const DEFAULT_GNOMON_LENGTH = 1;
 
-  let input: CalibrationInputType = createDefaultInput();
-  let result: CalibrationResultType | null = null;
-  let currentStep = 0;
-  let isCalculating = false;
-  let photoAnalysis: PhotoAnalysisResult = createEmptyPhotoAnalysis();
-
   let activeTab: 'input' | 'photo' | 'history' | 'compare' = 'input';
   let compareRecordIds: string[] = [];
   let showRecordDetail: MeasurementRecord | null = null;
   let saveSuccessMsg = '';
 
-  function createDefaultInput(): CalibrationInputType {
-    const now = new Date();
-    return {
-      gnomonLength: DEFAULT_GNOMON_LENGTH,
-      shadowLength: 1.2,
-      shadowDirection: 5,
-      measurementDateTime: now.toISOString(),
-      latitude: DEFAULT_LATITUDE,
-      longitude: DEFAULT_LONGITUDE,
-      sundialType: 'horizontal',
-      dialTiltAngle: 0,
-      dialOrientation: 180,
-    };
-  }
-
-  function initializeWithDefaults() {
-    const defaultInput = createDefaultInput();
-    try {
-      const theoretical = getTheoreticalSolarPosition(
-        defaultInput.measurementDateTime,
-        defaultInput.latitude,
-        defaultInput.longitude
-      );
-
-      if (theoretical.altitude > 0) {
-        const theoreticalShadowLength =
-          defaultInput.gnomonLength / Math.tan((theoretical.altitude * Math.PI) / 180);
-        const theoreticalShadowDirection = ((theoretical.azimuth + 180) % 360);
-
-        defaultInput.shadowLength = Math.max(0.1, theoreticalShadowLength * 0.95);
-        defaultInput.shadowDirection = (theoreticalShadowDirection + 8 + 360) % 360;
-      }
-    } catch (e) {
-    }
-    input = defaultInput;
-  }
-
   onMount(() => {
-    initializeWithDefaults();
+    resetInput();
   });
 
-  function handleCalibrate() {
-    isCalculating = true;
-    setTimeout(() => {
-      result = performCalibration(input);
-      currentStep = 0;
-      isCalculating = false;
-      saveSuccessMsg = '';
-    }, 300);
+  async function handleCalibrate() {
+    saveSuccessMsg = '';
+    await calibrateAsync();
   }
 
   function handleReset() {
-    initializeWithDefaults();
-    result = null;
-    currentStep = 0;
-    photoAnalysis = createEmptyPhotoAnalysis();
+    resetInput();
     saveSuccessMsg = '';
   }
 
@@ -116,23 +79,17 @@
   }
 
   function handlePhotoAnalysisUpdate(analysis: PhotoAnalysisResult) {
-    photoAnalysis = analysis;
+    setPhotoAnalysis(analysis);
   }
 
   function handleApplyPhotoAnalysis(data: { shadowLength: number; shadowDirection: number }) {
-    input = {
-      ...input,
-      shadowLength: data.shadowLength || input.shadowLength,
-      shadowDirection: data.shadowDirection || input.shadowDirection,
-    };
+    applyPhotoAnalysisToInput(data);
     activeTab = 'input';
   }
 
   function handleSaveRecord() {
-    if (!result) return;
-
-    const record = addRecord(input, result, photoAnalysis);
-    if (record) {
+    const success = saveRecord();
+    if (success) {
       saveSuccessMsg = '保存成功！';
       setTimeout(() => {
         saveSuccessMsg = '';
@@ -141,14 +98,10 @@
   }
 
   function handleLoadRecord(record: MeasurementRecord) {
-    input = { ...record.input };
-    result = { ...record.result };
-    if (record.photoAnalysis) {
-      photoAnalysis = { ...record.photoAnalysis };
-    }
+    loadRecord(record);
     showRecordDetail = null;
     activeTab = 'input';
-    currentStep = 0;
+    setCurrentStep(0);
   }
 
   function handleViewRecord(record: MeasurementRecord) {
@@ -197,10 +150,10 @@
       </div>
 
       <div class="flex items-center gap-2">
-        {#if result && saveSuccessMsg}
+        {#if $result && saveSuccessMsg}
           <span class="text-xs text-emerald-400 mr-2">{saveSuccessMsg}</span>
         {/if}
-        {#if result}
+        {#if $result}
           <button
             onclick={handleSaveRecord}
             class="hidden sm:flex px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30
@@ -221,14 +174,14 @@
         </button>
         <button
           onclick={handleCalibrate}
-          disabled={isCalculating}
+          disabled={$isCalculating}
           class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500
                  rounded-lg text-sm font-medium text-white shadow-lg shadow-amber-500/20
                  transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50"
         >
           <Play class="w-4 h-4" />
-          <span class="hidden sm:inline">{isCalculating ? '计算中...' : '开始校准'}</span>
-          <span class="sm:hidden">{isCalculating ? '...' : '校准'}</span>
+          <span class="hidden sm:inline">{$isCalculating ? '计算中...' : '开始校准'}</span>
+          <span class="sm:hidden">{$isCalculating ? '...' : '校准'}</span>
         </button>
       </div>
     </div>
@@ -276,24 +229,24 @@
     {#if activeTab === 'input'}
       <div class="grid grid-cols-12 gap-4 lg:gap-6 min-h-[calc(100vh-120px)]">
         <div class="col-span-12 lg:col-span-3 h-full">
-          <CalibrationInput bind:input />
+          <CalibrationInput bind:input={$input} />
         </div>
 
         <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 min-h-[400px] lg:min-h-0">
           <div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">
-            <CalibrationResult {result} {input} />
+            <CalibrationResult result={$result} input={$input} />
           </div>
         </div>
 
         <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full">
           <div class="flex-1 min-h-0 overflow-hidden">
             <CalibrationSteps
-              steps={result?.calibrationSteps || []}
-              bind:currentStep
+              steps={$result?.calibrationSteps || []}
+              bind:currentStep={$currentStep}
             />
           </div>
 
-          {#if result}
+          {#if $result}
             <button
               onclick={handleSaveRecord}
               class="sm:hidden w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600
@@ -310,11 +263,11 @@
     {:else if activeTab === 'photo'}
       <div class="grid grid-cols-12 gap-4 lg:gap-6 min-h-[calc(100vh-120px)]">
         <div class="col-span-12 lg:col-span-8">
-          {#if input.photoDataUrl}
+          {#if $input.photoDataUrl}
             <PhotoAnalyzer
-              photoDataUrl={input.photoDataUrl}
-              gnomonLength={input.gnomonLength}
-              bind:analysis={photoAnalysis}
+              photoDataUrl={$input.photoDataUrl}
+              gnomonLength={$input.gnomonLength}
+              bind:analysis={$photoAnalysis}
               on:applyToInput={(e) => handleApplyPhotoAnalysis(e.detail)}
             />
           {:else}

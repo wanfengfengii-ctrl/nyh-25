@@ -1,48 +1,43 @@
 import { writable, derived, get } from 'svelte/store';
-import type { MeasurementRecord, CalibrationInput, CalibrationResult, PhotoAnalysisResult } from '$lib/types';
+import type {
+  MeasurementRecord,
+  CalibrationInput,
+  CalibrationResult,
+  PhotoAnalysisResult,
+} from '$lib/types';
+import { loadFromStorage, saveToStorage, generateId } from '$lib/utils/storage';
 
 const STORAGE_KEY = 'sundial-measurements';
 const MAX_RECORDS = 50;
 
-function loadRecords(): MeasurementRecord[] {
-  if (typeof localStorage === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecords(records: MeasurementRecord[]) {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+function createInitialRecords(): MeasurementRecord[] {
+  return loadFromStorage<MeasurementRecord[]>(STORAGE_KEY, []);
 }
 
 function createMeasurementStore() {
-  const records = writable<MeasurementRecord[]>([]);
+  const records = writable<MeasurementRecord[]>(createInitialRecords());
   const selectedRecordIds = writable<string[]>([]);
   const activeRecordId = writable<string | null>(null);
 
-  if (typeof localStorage !== 'undefined') {
-    records.set(loadRecords());
+  function persist($records: MeasurementRecord[]) {
+    saveToStorage(STORAGE_KEY, $records);
   }
 
   const activeRecord = derived([records, activeRecordId], ([$records, $activeId]) => {
     if (!$activeId) return null;
-    return $records.find(r => r.id === $activeId) || null;
+    return $records.find((r) => r.id === $activeId) || null;
   });
 
   const selectedRecords = derived([records, selectedRecordIds], ([$records, $selectedIds]) => {
-    return $records.filter(r => $selectedIds.includes(r.id));
+    return $records.filter((r) => $selectedIds.includes(r.id));
   });
 
   const activeRecords = derived(records, ($records) => {
-    return $records.filter(r => !r.isArchived);
+    return $records.filter((r) => !r.isArchived);
   });
 
   const archivedRecords = derived(records, ($records) => {
-    return $records.filter(r => r.isArchived);
+    return $records.filter((r) => r.isArchived);
   });
 
   function addRecord(
@@ -52,7 +47,7 @@ function createMeasurementStore() {
     name?: string
   ): MeasurementRecord | null {
     const $records = get(records);
-    
+
     if ($records.length >= MAX_RECORDS) {
       return null;
     }
@@ -60,7 +55,7 @@ function createMeasurementStore() {
     const now = Date.now();
     const dateStr = new Date(input.measurementDateTime).toLocaleDateString('zh-CN');
     const newRecord: MeasurementRecord = {
-      id: now.toString(),
+      id: generateId(),
       name: name || `测量记录 ${$records.length + 1} - ${dateStr}`,
       createdAt: now,
       updatedAt: now,
@@ -74,13 +69,13 @@ function createMeasurementStore() {
 
     const updated = [newRecord, ...$records];
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
     return newRecord;
   }
 
   function updateRecord(id: string, updates: Partial<MeasurementRecord>) {
     const $records = get(records);
-    const index = $records.findIndex(r => r.id === id);
+    const index = $records.findIndex((r) => r.id === id);
     if (index === -1) return;
 
     const updated = [...$records];
@@ -90,16 +85,16 @@ function createMeasurementStore() {
       updatedAt: Date.now(),
     };
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
   }
 
   function deleteRecord(id: string) {
     const $records = get(records);
-    const updated = $records.filter(r => r.id !== id);
+    const updated = $records.filter((r) => r.id !== id);
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
 
-    selectedRecordIds.update(ids => ids.filter(i => i !== id));
+    selectedRecordIds.update((ids) => ids.filter((i) => i !== id));
     const $activeId = get(activeRecordId);
     if ($activeId === id) {
       activeRecordId.set(null);
@@ -108,7 +103,7 @@ function createMeasurementStore() {
 
   function toggleArchive(id: string) {
     const $records = get(records);
-    const record = $records.find(r => r.id === id);
+    const record = $records.find((r) => r.id === id);
     if (record) {
       updateRecord(id, { isArchived: !record.isArchived });
     }
@@ -119,9 +114,9 @@ function createMeasurementStore() {
   }
 
   function toggleSelectRecord(id: string) {
-    selectedRecordIds.update(ids => {
+    selectedRecordIds.update((ids) => {
       if (ids.includes(id)) {
-        return ids.filter(i => i !== id);
+        return ids.filter((i) => i !== id);
       }
       return [...ids, id];
     });
@@ -133,12 +128,12 @@ function createMeasurementStore() {
 
   function selectAll() {
     const $active = get(activeRecords);
-    selectedRecordIds.set($active.map(r => r.id));
+    selectedRecordIds.set($active.map((r) => r.id));
   }
 
   function addTag(id: string, tag: string) {
     const $records = get(records);
-    const record = $records.find(r => r.id === id);
+    const record = $records.find((r) => r.id === id);
     if (record && !record.tags?.includes(tag)) {
       updateRecord(id, { tags: [...(record.tags || []), tag] });
     }
@@ -146,15 +141,15 @@ function createMeasurementStore() {
 
   function removeTag(id: string, tag: string) {
     const $records = get(records);
-    const record = $records.find(r => r.id === id);
+    const record = $records.find((r) => r.id === id);
     if (record) {
-      updateRecord(id, { tags: (record.tags || []).filter(t => t !== tag) });
+      updateRecord(id, { tags: (record.tags || []).filter((t) => t !== tag) });
     }
   }
 
   function exportRecordsJSON(ids?: string[]): string {
     const $records = get(records);
-    const toExport = ids ? $records.filter(r => ids.includes(r.id)) : $records;
+    const toExport = ids ? $records.filter((r) => ids.includes(r.id)) : $records;
     const data = {
       exportedAt: new Date().toISOString(),
       count: toExport.length,
@@ -168,15 +163,17 @@ function createMeasurementStore() {
       const data = JSON.parse(jsonStr);
       const importedRecords = data.records || [];
       const $records = get(records);
-      
-      const existingIds = new Set($records.map(r => r.id));
-      const newRecords = importedRecords.filter((r: MeasurementRecord) => !existingIds.has(r.id));
-      
+
+      const existingIds = new Set($records.map((r) => r.id));
+      const newRecords = importedRecords.filter(
+        (r: MeasurementRecord) => !existingIds.has(r.id)
+      );
+
       if (newRecords.length === 0) return 0;
-      
+
       const merged = [...newRecords, ...$records].slice(0, MAX_RECORDS);
       records.set(merged);
-      saveRecords(merged);
+      persist(merged);
       return newRecords.length;
     } catch {
       return 0;
@@ -185,7 +182,7 @@ function createMeasurementStore() {
 
   function loadRecordToInput(id: string): CalibrationInput | null {
     const $records = get(records);
-    const record = $records.find(r => r.id === id);
+    const record = $records.find((r) => r.id === id);
     if (record) {
       return { ...record.input };
     }
@@ -194,17 +191,18 @@ function createMeasurementStore() {
 
   function getRecordsByTag(tag: string): MeasurementRecord[] {
     const $records = get(records);
-    return $records.filter(r => r.tags?.includes(tag));
+    return $records.filter((r) => r.tags?.includes(tag));
   }
 
   function searchRecords(query: string): MeasurementRecord[] {
     const $records = get(records);
     const q = query.toLowerCase();
-    return $records.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      r.notes?.toLowerCase().includes(q) ||
-      r.tags?.some(t => t.toLowerCase().includes(q)) ||
-      r.input.locationName?.toLowerCase().includes(q)
+    return $records.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.notes?.toLowerCase().includes(q) ||
+        r.tags?.some((t) => t.toLowerCase().includes(q)) ||
+        r.input.locationName?.toLowerCase().includes(q)
     );
   }
 

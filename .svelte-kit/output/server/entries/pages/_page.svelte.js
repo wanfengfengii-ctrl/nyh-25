@@ -1,7 +1,7 @@
 import "clsx";
 import { a as sanitize_props, b as spread_props, s as slot, c as ensure_array_like, d as attr_class, f as clsx, e as escape_html, h as attr, i as store_get, u as unsubscribe_stores, j as attr_style, k as stringify } from "../../chunks/index.js";
 import { w as writable, i as derived, j as get } from "../../chunks/exports.js";
-import { I as Icon, G as Globe, C as Calendar, S as Sun, T as Trending_up, X, B as Bar_chart_3, a as Compass } from "../../chunks/x.js";
+import { g as getSunriseSunset, a as getSolarPosition, t as toRad, b as toDeg, l as loadFromStorage, s as saveToStorage, c as generateId, i as isSunVisible, d as getAltitudeCurve, e as getYearlyAnalysisData, f as getMaxAltitude, I as Icon, G as Globe, C as Calendar, S as Sun, T as Trending_up, h as Save, X, B as Bar_chart_3, j as Compass } from "../../chunks/x.js";
 import "@sveltejs/kit/internal";
 import "../../chunks/utils2.js";
 import "@sveltejs/kit/internal/server";
@@ -34,148 +34,6 @@ const KEY_DATE_COLORS = {
   equinoxes: ["#10b981", "#f59e0b"],
   quarterly: ["#22c55e", "#eab308", "#f97316", "#8b5cf6"]
 };
-const DEG_TO_RAD$1 = Math.PI / 180;
-const RAD_TO_DEG$1 = 180 / Math.PI;
-function toRad$1(deg) {
-  return deg * DEG_TO_RAD$1;
-}
-function toDeg$1(rad) {
-  return rad * RAD_TO_DEG$1;
-}
-function getDayOfYear(date) {
-  const start = new Date(date.getFullYear(), 0, 0);
-  const diff = date.getTime() - start.getTime();
-  const oneDay = 1e3 * 60 * 60 * 24;
-  return Math.floor(diff / oneDay);
-}
-function getSolarDeclination(dayOfYear) {
-  return -23.45 * Math.cos(toRad$1(360 / 365 * (dayOfYear + 10)));
-}
-function getEquationOfTime(dayOfYear) {
-  const B = toRad$1(360 / 365 * (dayOfYear - 81));
-  return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
-}
-function getSolarPosition(date, latitude, longitude = 0) {
-  const dayOfYear = getDayOfYear(date);
-  const declination = getSolarDeclination(dayOfYear);
-  const hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
-  const equationOfTime = getEquationOfTime(dayOfYear);
-  const solarTime = hours + 4 * longitude / 60 + equationOfTime / 60;
-  const hourAngle = (solarTime - 12) * 15;
-  const latRad = toRad$1(latitude);
-  const decRad = toRad$1(declination);
-  const haRad = toRad$1(hourAngle);
-  const sinAltitude = Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad);
-  const altitude = toDeg$1(Math.asin(Math.max(-1, Math.min(1, sinAltitude))));
-  const cosAzimuth = (Math.sin(decRad) - Math.sin(latRad) * sinAltitude) / (Math.cos(latRad) * Math.cos(toRad$1(altitude)));
-  const azimuth = toDeg$1(Math.acos(Math.max(-1, Math.min(1, cosAzimuth))));
-  const finalAzimuth = hourAngle > 0 ? 360 - azimuth : azimuth;
-  return {
-    altitude,
-    azimuth: finalAzimuth,
-    declination,
-    hourAngle
-  };
-}
-function getSunriseSunset(date, latitude, longitude = 0) {
-  const dayOfYear = getDayOfYear(date);
-  const declination = getSolarDeclination(dayOfYear);
-  const equationOfTime = getEquationOfTime(dayOfYear);
-  const latRad = toRad$1(latitude);
-  const decRad = toRad$1(declination);
-  let cosHourAngle = -Math.tan(latRad) * Math.tan(decRad);
-  if (cosHourAngle > 1) {
-    return { sunrise: 12, sunset: 12, dayLength: 0 };
-  }
-  if (cosHourAngle < -1) {
-    return { sunrise: 0, sunset: 24, dayLength: 24 };
-  }
-  const hourAngle = toDeg$1(Math.acos(cosHourAngle));
-  const solarNoon = 12 - longitude / 15 - equationOfTime / 60;
-  const sunrise = solarNoon - hourAngle / 15;
-  const sunset = solarNoon + hourAngle / 15;
-  const dayLength = 2 * hourAngle / 15;
-  return {
-    sunrise: Math.max(0, Math.min(24, sunrise)),
-    sunset: Math.max(0, Math.min(24, sunset)),
-    dayLength
-  };
-}
-function isSunVisible(date, latitude, longitude = 0) {
-  const pos = getSolarPosition(date, latitude, longitude);
-  return pos.altitude > 0;
-}
-function getAltitudeCurve(date, latitude, longitude = 0, steps = 96) {
-  const points = [];
-  const { sunrise, sunset } = getSunriseSunset(date, latitude, longitude);
-  for (let i = 0; i <= steps; i++) {
-    const hour = sunrise + (sunset - sunrise) * (i / steps);
-    const timeDate = new Date(date);
-    timeDate.setHours(Math.floor(hour), hour % 1 * 60, 0, 0);
-    const solarPos = getSolarPosition(timeDate, latitude, longitude);
-    points.push({
-      hour,
-      altitude: Math.max(0, solarPos.altitude),
-      azimuth: solarPos.azimuth
-    });
-  }
-  return points;
-}
-function getMaxAltitude(date, latitude, longitude = 0) {
-  const dayOfYear = getDayOfYear(date);
-  const declination = getSolarDeclination(dayOfYear);
-  const latRad = toRad$1(latitude);
-  const decRad = toRad$1(declination);
-  const sinMaxAlt = Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad);
-  return toDeg$1(Math.asin(Math.max(-1, Math.min(1, sinMaxAlt))));
-}
-function getKeyDate(year, month, day, latitude, longitude = 0) {
-  const date = new Date(year, month - 1, day);
-  const dateStr = date.toISOString().split("T")[0];
-  const { dayLength } = getSunriseSunset(date, latitude, longitude);
-  const maxAlt = getMaxAltitude(date, latitude, longitude);
-  return { date: dateStr, dayLength, maxAltitude: maxAlt };
-}
-function getYearlyAnalysisData(date, latitude, longitude = 0) {
-  const year = date.getFullYear();
-  const summerSolstice = getKeyDate(year, 6, 21, latitude, longitude);
-  const winterSolstice = getKeyDate(year, 12, 21, latitude, longitude);
-  const springEquinox = getKeyDate(year, 3, 20, latitude, longitude);
-  const autumnEquinox = getKeyDate(year, 9, 23, latitude, longitude);
-  const quarterly = [
-    getKeyDate(year, 2, 4, latitude, longitude),
-    getKeyDate(year, 5, 5, latitude, longitude),
-    getKeyDate(year, 8, 7, latitude, longitude),
-    getKeyDate(year, 11, 7, latitude, longitude)
-  ];
-  const currentDay = getKeyDate(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    latitude,
-    longitude
-  );
-  return {
-    solstices: {
-      summer: summerSolstice,
-      winter: winterSolstice
-    },
-    equinoxes: {
-      spring: springEquinox,
-      autumn: autumnEquinox
-    },
-    quarterly,
-    currentDay
-  };
-}
-const DEG_TO_RAD = Math.PI / 180;
-const RAD_TO_DEG = 180 / Math.PI;
-function toRad(deg) {
-  return deg * DEG_TO_RAD;
-}
-function toDeg(rad) {
-  return rad * RAD_TO_DEG;
-}
 function getEquatorialShadow(solarPos, gnomonLength, latitude, hour) {
   if (solarPos.altitude <= 0) return null;
   toRad(solarPos.declination);
@@ -225,16 +83,18 @@ function getHourLineAngle(type, hour, latitude) {
   switch (type) {
     case "equatorial":
       return hourAngle;
-    case "horizontal":
+    case "horizontal": {
       const latRad = toRad(latitude);
       const haRad = toRad(hourAngle);
       const tanLine = Math.sin(haRad) / (Math.cos(haRad) * Math.sin(latRad) + Math.tan(toRad(23.45)) * Math.cos(latRad));
       return toDeg(Math.atan(tanLine));
-    case "vertical":
-      const latRad2 = toRad(latitude);
-      const haRad2 = toRad(hourAngle);
-      const tanLine2 = Math.sin(haRad2) / (Math.cos(haRad2) * Math.cos(latRad2) - Math.tan(toRad(23.45)) * Math.sin(latRad2));
-      return toDeg(Math.atan(tanLine2));
+    }
+    case "vertical": {
+      const latRad = toRad(latitude);
+      const haRad = toRad(hourAngle);
+      const tanLine = Math.sin(haRad) / (Math.cos(haRad) * Math.cos(latRad) - Math.tan(toRad(23.45)) * Math.sin(latRad));
+      return toDeg(Math.atan(tanLine));
+    }
     default:
       return hourAngle;
   }
@@ -275,22 +135,138 @@ function getNoonShadow(type, date, latitude, gnomonLength) {
   if (!shadow) return null;
   return { angle: shadow.angle, length: shadow.length };
 }
+function getComparePresetShadowData(preset) {
+  const date = new Date(preset.date);
+  const hours = Math.floor(preset.timeHours);
+  const minutes = Math.floor((preset.timeHours - hours) * 60);
+  date.setHours(hours, minutes, 0, 0);
+  const solarPos = getSolarPosition(date, preset.latitude, 0);
+  const visible = solarPos.altitude > 0;
+  const shadow = visible ? getShadow(preset.type, solarPos, preset.latitude, preset.gnomonLength || 1) : null;
+  const track = getShadowTrackPoints(
+    preset.type,
+    date,
+    preset.latitude,
+    preset.gnomonLength || 1,
+    120
+  );
+  const ss = getSunriseSunset(date, preset.latitude, 0);
+  const maxLen = getMaxShadowLength(
+    preset.type,
+    date,
+    preset.latitude,
+    preset.gnomonLength || 1
+  );
+  const noonShadow = getNoonShadow(
+    preset.type,
+    date,
+    preset.latitude,
+    preset.gnomonLength || 1
+  );
+  const altCurve = [];
+  const { sunrise, sunset } = ss;
+  const steps = 96;
+  for (let i = 0; i <= steps; i++) {
+    const hour = sunrise + (sunset - sunrise) * (i / steps);
+    const timeDate = new Date(date);
+    timeDate.setHours(Math.floor(hour), hour % 1 * 60, 0, 0);
+    const sp = getSolarPosition(timeDate, preset.latitude, 0);
+    altCurve.push({
+      hour,
+      altitude: Math.max(0, sp.altitude),
+      azimuth: sp.azimuth
+    });
+  }
+  return {
+    solarPosition: solarPos,
+    shadow,
+    shadowTrack: track,
+    sunriseSunset: ss,
+    sunVisible: visible,
+    maxShadowLength: maxLen,
+    noonShadowAngle: noonShadow?.angle ?? 0,
+    noonShadowLength: noonShadow?.length ?? 0,
+    altitudeCurve: altCurve
+  };
+}
 const STORAGE_KEY = "sundial-presets";
 const MAX_PRESETS = 20;
-const MAX_COMPARE_PRESETS = 4;
-function loadPresets() {
-  if (typeof localStorage === "undefined") return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
+function createInitialPresets() {
+  return loadFromStorage(STORAGE_KEY, []);
+}
+function createPresetStore() {
+  const presets = writable(createInitialPresets());
+  function persist($presets) {
+    saveToStorage(STORAGE_KEY, $presets);
   }
+  const count = derived(presets, ($presets) => $presets.length);
+  const canAddMore = derived(presets, ($presets) => $presets.length < MAX_PRESETS);
+  function addPreset(preset) {
+    const $presets = get(presets);
+    if ($presets.length >= MAX_PRESETS) {
+      return null;
+    }
+    const newPreset = {
+      ...preset,
+      id: generateId(),
+      createdAt: Date.now()
+    };
+    const updated = [...$presets, newPreset];
+    presets.set(updated);
+    persist(updated);
+    return newPreset;
+  }
+  function createPresetFromConfig(name, config) {
+    const $presets = get(presets);
+    if ($presets.length >= MAX_PRESETS) {
+      return null;
+    }
+    const presetName = name.trim() || `方案 ${$presets.length + 1}`;
+    return addPreset({
+      name: presetName,
+      type: config.type,
+      latitude: config.latitude,
+      date: config.date,
+      timeHours: config.timeHours,
+      gnomonLength: config.gnomonLength
+    });
+  }
+  function updatePreset(id, updates) {
+    const $presets = get(presets);
+    const index = $presets.findIndex((p) => p.id === id);
+    if (index === -1) return;
+    const updated = [...$presets];
+    updated[index] = { ...updated[index], ...updates };
+    presets.set(updated);
+    persist(updated);
+  }
+  function deletePreset(id) {
+    const $presets = get(presets);
+    const updated = $presets.filter((p) => p.id !== id);
+    presets.set(updated);
+    persist(updated);
+  }
+  function getPresetById(id) {
+    return get(presets).find((p) => p.id === id);
+  }
+  function clearAllPresets() {
+    presets.set([]);
+    saveToStorage(STORAGE_KEY, []);
+  }
+  return {
+    presets,
+    count,
+    canAddMore,
+    addPreset,
+    createPresetFromConfig,
+    updatePreset,
+    deletePreset,
+    getPresetById,
+    clearAllPresets
+  };
 }
-function savePresets(presets) {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
-}
+const presetStore = createPresetStore();
+const MAX_COMPARE_PRESETS = 4;
 function createInitialState() {
   const now = /* @__PURE__ */ new Date();
   return {
@@ -309,10 +285,6 @@ function createInitialState() {
 }
 function createSundialStore() {
   const config = writable(createInitialState());
-  const presets = writable([]);
-  if (typeof localStorage !== "undefined") {
-    presets.set(loadPresets());
-  }
   const currentDateTime = derived(config, ($config) => {
     const date = new Date($config.date);
     const hours = Math.floor($config.timeHours);
@@ -342,70 +314,17 @@ function createSundialStore() {
       return getShadow($config.type, $solarPos, $config.latitude, $config.gnomonLength);
     }
   );
-  const shadowTrack = derived(
-    [config, currentDateTime],
-    ([$config, $date]) => {
-      return getShadowTrackPoints(
-        $config.type,
-        $date,
-        $config.latitude,
-        $config.gnomonLength,
-        120
-      );
-    }
-  );
+  const shadowTrack = derived([config, currentDateTime], ([$config, $date]) => {
+    return getShadowTrackPoints(
+      $config.type,
+      $date,
+      $config.latitude,
+      $config.gnomonLength,
+      120
+    );
+  });
   const hourMarks = derived([config], ([$config]) => {
     return getHourMarks($config.type, $config.latitude, $config.gnomonLength);
-  });
-  const comparePresets = derived([config, presets], ([$config, $presets]) => {
-    if (!$config.compareMode || $config.comparePresetIds.length === 0) return [];
-    return $config.comparePresetIds.map((id) => $presets.find((p) => p.id === id)).filter((p) => p !== void 0);
-  });
-  const comparePresetsData = derived([comparePresets], ([$comparePresets]) => {
-    if ($comparePresets.length === 0) return [];
-    return $comparePresets.map((preset, index) => {
-      const date = new Date(preset.date);
-      const hours = Math.floor(preset.timeHours);
-      const minutes = Math.floor((preset.timeHours - hours) * 60);
-      date.setHours(hours, minutes, 0, 0);
-      const solarPos = getSolarPosition(date, preset.latitude, 0);
-      const visible = isSunVisible(date, preset.latitude, 0);
-      const shadow = visible ? getShadow(preset.type, solarPos, preset.latitude, preset.gnomonLength || 1) : null;
-      const track = getShadowTrackPoints(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1,
-        120
-      );
-      const ss = getSunriseSunset(date, preset.latitude, 0);
-      const maxLen = getMaxShadowLength(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1
-      );
-      const noonShadow2 = getNoonShadow(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1
-      );
-      const altCurve = getAltitudeCurve(date, preset.latitude, 0, 96);
-      return {
-        preset,
-        color: COMPARE_COLORS[index % COMPARE_COLORS.length],
-        shadow,
-        shadowTrack: track,
-        sunriseSunset: ss,
-        solarPosition: solarPos,
-        sunVisible: visible,
-        maxShadowLength: maxLen,
-        noonShadowAngle: noonShadow2?.angle ?? 0,
-        noonShadowLength: noonShadow2?.length ?? 0,
-        altitudeCurve: altCurve
-      };
-    });
   });
   const maxShadowLength = derived([config, currentDateTime], ([$config, $date]) => {
     return getMaxShadowLength(
@@ -423,6 +342,35 @@ function createSundialStore() {
       $config.gnomonLength
     );
   });
+  const selectedComparePresets = derived(
+    [config, presetStore.presets],
+    ([$config, $presets]) => {
+      if (!$config.compareMode || $config.comparePresetIds.length === 0) return [];
+      return $config.comparePresetIds.map((id) => $presets.find((p) => p.id === id)).filter((p) => p !== void 0);
+    }
+  );
+  const comparePresetsData = derived(
+    [selectedComparePresets, config],
+    ([$comparePresets, $config]) => {
+      if ($comparePresets.length === 0 || !$config.compareMode) return [];
+      return $comparePresets.map((preset, index) => {
+        const shadowData = getComparePresetShadowData(preset);
+        return {
+          preset,
+          color: COMPARE_COLORS[index % COMPARE_COLORS.length],
+          shadow: shadowData.shadow,
+          shadowTrack: shadowData.shadowTrack,
+          sunriseSunset: shadowData.sunriseSunset,
+          solarPosition: shadowData.solarPosition,
+          sunVisible: shadowData.sunVisible,
+          maxShadowLength: shadowData.maxShadowLength,
+          noonShadowAngle: shadowData.noonShadowAngle,
+          noonShadowLength: shadowData.noonShadowLength,
+          altitudeCurve: shadowData.altitudeCurve
+        };
+      });
+    }
+  );
   const keyDateTracks = derived([config, currentDateTime], ([$config, $date]) => {
     if ($config.keyDateMode === "single") return [];
     const year = $date.getFullYear();
@@ -510,28 +458,17 @@ function createSundialStore() {
   }
   function savePreset(name) {
     const $config = get(config);
-    const $presets = get(presets);
-    if ($presets.length >= MAX_PRESETS) {
-      return false;
-    }
-    const newPreset = {
-      id: Date.now().toString(),
-      name: name || `方案 ${$presets.length + 1}`,
+    const result = presetStore.createPresetFromConfig(name, {
       type: $config.type,
       latitude: $config.latitude,
       date: $config.date,
       timeHours: $config.timeHours,
-      gnomonLength: $config.gnomonLength,
-      createdAt: Date.now()
-    };
-    const updated = [...$presets, newPreset];
-    presets.set(updated);
-    savePresets(updated);
-    return true;
+      gnomonLength: $config.gnomonLength
+    });
+    return result !== null;
   }
   function loadPreset(id) {
-    const $presets = get(presets);
-    const preset = $presets.find((p) => p.id === id);
+    const preset = presetStore.getPresetById(id);
     if (preset) {
       config.update((s) => ({
         ...s,
@@ -544,10 +481,7 @@ function createSundialStore() {
     }
   }
   function deletePreset(id) {
-    const $presets = get(presets);
-    const updated = $presets.filter((p) => p.id !== id);
-    presets.set(updated);
-    savePresets(updated);
+    presetStore.deletePreset(id);
     config.update((s) => ({
       ...s,
       comparePresetIds: s.comparePresetIds.filter((pid) => pid !== id)
@@ -563,7 +497,6 @@ function createSundialStore() {
   }
   return {
     config,
-    presets,
     currentDateTime,
     solarPosition,
     sunVisible,
@@ -576,7 +509,7 @@ function createSundialStore() {
     maxShadowLength,
     noonShadow,
     keyDateTracks,
-    comparePresets,
+    selectedComparePresets,
     comparePresetsData,
     setType,
     setLatitude,
@@ -956,49 +889,6 @@ function Leaf($$renderer, $$props) {
        * @description Lucide SVG icon component, renders SVG Element with children.
        *
        * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMTEgMjBBNyA3IDAgMCAxIDkuOCA2LjFDMTUuNSA1IDE3IDQuNDggMTkgMmMxIDIgMiA0LjE4IDIgOCAwIDUuNS00Ljc4IDEwLTEwIDEwWiIgLz4KICA8cGF0aCBkPSJNMiAyMWMwLTMgMS44NS01LjM2IDUuMDgtNkM5LjUgMTQuNTIgMTIgMTMgMTMgMTIiIC8+Cjwvc3ZnPgo=) - https://lucide.dev/icons/leaf
-       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
-       *
-       * @param {Object} props - Lucide icons props and any valid SVG attribute
-       * @returns {FunctionalComponent} Svelte component
-       *
-       */
-      iconNode,
-      children: ($$renderer2) => {
-        $$renderer2.push(`<!--[-->`);
-        slot($$renderer2, $$props, "default", {});
-        $$renderer2.push(`<!--]-->`);
-      },
-      $$slots: { default: true }
-    }
-  ]));
-}
-function Save($$renderer, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  /**
-   * @license lucide-svelte v0.344.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const iconNode = [
-    [
-      "path",
-      {
-        "d": "M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-      }
-    ],
-    ["polyline", { "points": "17 21 17 13 7 13 7 21" }],
-    ["polyline", { "points": "7 3 7 8 15 8" }]
-  ];
-  Icon($$renderer, spread_props([
-    { name: "save" },
-    $$sanitized_props,
-    {
-      /**
-       * @component @name Save
-       * @description Lucide SVG icon component, renders SVG Element with children.
-       *
-       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMTkgMjFINWEyIDIgMCAwIDEtMi0yVjVhMiAyIDAgMCAxIDItMmgxMWw1IDV2MTFhMiAyIDAgMCAxLTIgMnoiIC8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMTcgMjEgMTcgMTMgNyAxMyA3IDIxIiAvPgogIDxwb2x5bGluZSBwb2ludHM9IjcgMyA3IDggMTUgOCIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/save
        * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
        *
        * @param {Object} props - Lucide icons props and any valid SVG attribute
@@ -1493,9 +1383,9 @@ function PresetManager($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
     const {
-      config,
-      presets
+      config
     } = sundialStore;
+    const { presets } = presetStore;
     const typeLabels = { equatorial: "赤道式", horizontal: "水平式", vertical: "垂直式" };
     function formatTime(hours) {
       const h = Math.floor(hours);

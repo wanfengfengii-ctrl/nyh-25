@@ -1,6 +1,6 @@
-import { a as sanitize_props, b as spread_props, s as slot, c as ensure_array_like, d as attr_class, f as clsx, e as escape_html, h as attr, l as bind_props, m as fallback, j as attr_style, k as stringify, i as store_get, u as unsubscribe_stores } from "../../../chunks/index.js";
-import { I as Icon, S as Sun, G as Globe, C as Calendar, X, a as Compass, B as Bar_chart_3, T as Trending_up } from "../../../chunks/x.js";
-import { i as derived, w as writable, j as get } from "../../../chunks/exports.js";
+import { a as sanitize_props, b as spread_props, s as slot, c as ensure_array_like, d as attr_class, f as clsx, e as escape_html, h as attr, l as bind_props, m as fallback, j as attr_style, k as stringify, i as store_get, n as store_set, u as unsubscribe_stores } from "../../../chunks/index.js";
+import { I as Icon, S as Sun, G as Globe, C as Calendar, X, j as Compass, B as Bar_chart_3, T as Trending_up, k as formatTimeFromHours, l as loadFromStorage, c as generateId, s as saveToStorage, t as toRad, n as normalizeAngle, m as getDayOfYear, o as angleDifference, b as toDeg, p as safeAcos, q as getSolarDeclination, r as safeAsin, u as getEquationOfTime, h as Save } from "../../../chunks/x.js";
+import { w as writable, i as derived, j as get } from "../../../chunks/exports.js";
 import "@sveltejs/kit/internal";
 import "../../../chunks/utils2.js";
 import "@sveltejs/kit/internal/server";
@@ -1028,12 +1028,6 @@ function CalibrationInput($$renderer, $$props) {
     bind_props($$props, { input });
   });
 }
-function formatTimeFromHours(hours) {
-  const h = Math.floor(hours);
-  const m = Math.floor((hours - h) * 60);
-  const s = Math.floor(((hours - h) * 60 - m) * 60);
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-}
 function DeviationChart($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let result = fallback($$props["result"], null);
@@ -1247,27 +1241,31 @@ function CalibrationSteps($$renderer, $$props) {
     bind_props($$props, { steps, currentStep });
   });
 }
+function createEmptyPhotoAnalysis() {
+  return {
+    gnomonTip: null,
+    gnomonBase: null,
+    shadowTip: null,
+    shadowBase: null,
+    horizonLine: null,
+    gnomonLengthPixels: 0,
+    shadowLengthPixels: 0,
+    shadowAngle: 0,
+    confidence: 0,
+    method: "manual"
+  };
+}
 const STORAGE_KEY = "sundial-measurements";
 const MAX_RECORDS = 50;
-function loadRecords() {
-  if (typeof localStorage === "undefined") return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-function saveRecords(records) {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+function createInitialRecords() {
+  return loadFromStorage(STORAGE_KEY, []);
 }
 function createMeasurementStore() {
-  const records = writable([]);
+  const records = writable(createInitialRecords());
   const selectedRecordIds = writable([]);
   const activeRecordId = writable(null);
-  if (typeof localStorage !== "undefined") {
-    records.set(loadRecords());
+  function persist($records) {
+    saveToStorage(STORAGE_KEY, $records);
   }
   const activeRecord = derived([records, activeRecordId], ([$records, $activeId]) => {
     if (!$activeId) return null;
@@ -1290,7 +1288,7 @@ function createMeasurementStore() {
     const now = Date.now();
     const dateStr = new Date(input.measurementDateTime).toLocaleDateString("zh-CN");
     const newRecord = {
-      id: now.toString(),
+      id: generateId(),
       name: name || `测量记录 ${$records.length + 1} - ${dateStr}`,
       createdAt: now,
       updatedAt: now,
@@ -1303,7 +1301,7 @@ function createMeasurementStore() {
     };
     const updated = [newRecord, ...$records];
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
     return newRecord;
   }
   function updateRecord(id, updates) {
@@ -1317,13 +1315,13 @@ function createMeasurementStore() {
       updatedAt: Date.now()
     };
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
   }
   function deleteRecord(id) {
     const $records = get(records);
     const updated = $records.filter((r) => r.id !== id);
     records.set(updated);
-    saveRecords(updated);
+    persist(updated);
     selectedRecordIds.update((ids) => ids.filter((i) => i !== id));
     const $activeId = get(activeRecordId);
     if ($activeId === id) {
@@ -1385,11 +1383,13 @@ function createMeasurementStore() {
       const importedRecords = data.records || [];
       const $records = get(records);
       const existingIds = new Set($records.map((r) => r.id));
-      const newRecords = importedRecords.filter((r) => !existingIds.has(r.id));
+      const newRecords = importedRecords.filter(
+        (r) => !existingIds.has(r.id)
+      );
       if (newRecords.length === 0) return 0;
       const merged = [...newRecords, ...$records].slice(0, MAX_RECORDS);
       records.set(merged);
-      saveRecords(merged);
+      persist(merged);
       return newRecords.length;
     } catch {
       return 0;
@@ -1440,33 +1440,371 @@ function createMeasurementStore() {
   };
 }
 const measurementStore = createMeasurementStore();
+function inferSolarPositionFromShadow(gnomonLength, shadowLength, shadowDirection, latitude) {
+  const altRad = Math.atan(gnomonLength / shadowLength);
+  const altitude = toDeg(altRad);
+  const azimuth = normalizeAngle(shadowDirection + 180);
+  const latRad = toRad(latitude);
+  const sinDec = Math.sin(altRad) * Math.sin(latRad) + Math.cos(altRad) * Math.cos(latRad) * Math.cos(toRad(azimuth));
+  const declination = toDeg(safeAsin(sinDec));
+  const cosH = (Math.sin(altRad) - Math.sin(latRad) * Math.sin(toRad(declination))) / (Math.cos(latRad) * Math.cos(toRad(declination)));
+  const hourAngle = toDeg(safeAcos(cosH));
+  const finalHourAngle = azimuth > 180 ? hourAngle : -hourAngle;
+  const solarTime = 12 + finalHourAngle / 15;
+  return {
+    altitude,
+    azimuth,
+    declination,
+    hourAngle: finalHourAngle,
+    solarTime
+  };
+}
+function getTheoreticalSolarPosition(dateTimeStr, latitude, longitude) {
+  const date = new Date(dateTimeStr);
+  const dayOfYear = getDayOfYear(date);
+  const declination = getSolarDeclination(dayOfYear);
+  const equationOfTime = getEquationOfTime(dayOfYear);
+  const utcHours = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+  const solarTime = utcHours + longitude / 15 + equationOfTime / 60;
+  const hourAngle = (solarTime - 12) * 15;
+  const latRad = toRad(latitude);
+  const decRad = toRad(declination);
+  const haRad = toRad(hourAngle);
+  const sinAltitude = Math.sin(latRad) * Math.sin(decRad) + Math.cos(latRad) * Math.cos(decRad) * Math.cos(haRad);
+  const altitude = toDeg(safeAsin(sinAltitude));
+  const cosAzimuth = (Math.sin(decRad) - Math.sin(latRad) * sinAltitude) / (Math.cos(latRad) * Math.cos(toRad(altitude)));
+  const azimuth = toDeg(safeAcos(cosAzimuth));
+  const finalAzimuth = hourAngle > 0 ? 360 - azimuth : azimuth;
+  return {
+    altitude,
+    azimuth: finalAzimuth,
+    declination,
+    hourAngle,
+    solarTime
+  };
+}
+function calculateDeviation(theoretical, measured, sundialType, dialTiltAngle, dialOrientation, latitude) {
+  const azimuthDiff = angleDifference(measured.azimuth, theoretical.azimuth);
+  const altitudeDiff = measured.altitude - theoretical.altitude;
+  let orientationDeviation = azimuthDiff;
+  let tiltDeviation = 0;
+  switch (sundialType) {
+    case "horizontal":
+      orientationDeviation = azimuthDiff;
+      tiltDeviation = altitudeDiff * 0.5;
+      break;
+    case "equatorial":
+      orientationDeviation = azimuthDiff;
+      tiltDeviation = dialTiltAngle - latitude;
+      if (Math.abs(tiltDeviation) > 30) {
+        tiltDeviation = altitudeDiff * 2;
+      }
+      break;
+    case "vertical":
+      orientationDeviation = azimuthDiff;
+      tiltDeviation = altitudeDiff * 0.8;
+      break;
+  }
+  const solarTimeDiff = measured.solarTime - theoretical.solarTime;
+  const timeDeviation = solarTimeDiff * 60;
+  const scaleError = Math.sin(toRad(measured.altitude)) / Math.cos(toRad(measured.altitude)) / (Math.sin(toRad(theoretical.altitude)) / Math.cos(toRad(theoretical.altitude))) - 1;
+  return {
+    orientationDeviation,
+    tiltDeviation,
+    scaleError: scaleError * 100,
+    timeDeviation
+  };
+}
+function generateCalibrationSteps(deviation, sundialType) {
+  const steps = [];
+  let stepId = 1;
+  if (Math.abs(deviation.orientationDeviation) > 0.5) {
+    steps.push({
+      id: stepId++,
+      title: "调整日晷朝向",
+      description: deviation.orientationDeviation > 0 ? "日晷当前朝向偏东，需要向西调整" : "日晷当前朝向偏西，需要向东调整",
+      adjustment: `旋转 ${Math.abs(deviation.orientationDeviation).toFixed(1)}°`,
+      direction: deviation.orientationDeviation > 0 ? "counterclockwise" : "clockwise",
+      magnitude: Math.abs(deviation.orientationDeviation),
+      unit: "度",
+      priority: Math.abs(deviation.orientationDeviation) > 5 ? "critical" : "important"
+    });
+  }
+  if (Math.abs(deviation.tiltDeviation) > 0.5) {
+    const tiltLabel = sundialType === "vertical" ? "调整日晷垂直倾角" : sundialType === "equatorial" ? "调整日晷赤道倾角" : "调整日晷底座水平度";
+    steps.push({
+      id: stepId++,
+      title: tiltLabel,
+      description: deviation.tiltDeviation > 0 ? "日晷当前倾角偏大，需要降低" : "日晷当前倾角偏小，需要升高",
+      adjustment: `调整 ${Math.abs(deviation.tiltDeviation).toFixed(1)}°`,
+      direction: deviation.tiltDeviation > 0 ? "down" : "up",
+      magnitude: Math.abs(deviation.tiltDeviation),
+      unit: "度",
+      priority: Math.abs(deviation.tiltDeviation) > 5 ? "critical" : "important"
+    });
+  }
+  if (Math.abs(deviation.scaleError) > 1) {
+    steps.push({
+      id: stepId++,
+      title: "校正刻度比例",
+      description: deviation.scaleError > 0 ? "影子长度偏长，刻度间距需要缩小" : "影子长度偏短，刻度间距需要放大",
+      adjustment: `调整比例 ${Math.abs(deviation.scaleError).toFixed(1)}%`,
+      direction: "none",
+      magnitude: Math.abs(deviation.scaleError),
+      unit: "%",
+      priority: Math.abs(deviation.scaleError) > 5 ? "important" : "minor"
+    });
+  }
+  if (Math.abs(deviation.timeDeviation) > 2) {
+    steps.push({
+      id: stepId++,
+      title: "校正时间基准",
+      description: deviation.timeDeviation > 0 ? "日晷显示时间偏快，需要调整晷针或刻度起始位置" : "日晷显示时间偏慢，需要调整晷针或刻度起始位置",
+      adjustment: `时间偏差 ${Math.abs(deviation.timeDeviation).toFixed(1)} 分钟`,
+      direction: "none",
+      magnitude: Math.abs(deviation.timeDeviation),
+      unit: "分钟",
+      priority: Math.abs(deviation.timeDeviation) > 10 ? "important" : "minor"
+    });
+  }
+  if (steps.length === 0) {
+    steps.push({
+      id: stepId++,
+      title: "校准状态良好",
+      description: "当前日晷的各项参数均在正常误差范围内，无需调整",
+      adjustment: "保持现有状态",
+      direction: "none",
+      magnitude: 0,
+      unit: "",
+      priority: "minor"
+    });
+  }
+  return steps;
+}
+function createComparisonPoint(theoretical, measured, unit) {
+  return {
+    theoretical,
+    measured,
+    difference: measured - theoretical,
+    unit
+  };
+}
+function calculateQualityScore(deviation) {
+  const orientationPenalty = Math.min(Math.abs(deviation.orientationDeviation) * 2, 30);
+  const tiltPenalty = Math.min(Math.abs(deviation.tiltDeviation) * 2, 30);
+  const scalePenalty = Math.min(Math.abs(deviation.scaleError) * 3, 20);
+  const timePenalty = Math.min(Math.abs(deviation.timeDeviation) / 2, 20);
+  const totalPenalty = orientationPenalty + tiltPenalty + scalePenalty + timePenalty;
+  const score = Math.max(0, 100 - totalPenalty);
+  let confidence = "high";
+  if (score < 60) confidence = "low";
+  else if (score < 80) confidence = "medium";
+  return { score: Math.round(score), confidence };
+}
+function performCalibration(input) {
+  const inferred = inferSolarPositionFromShadow(
+    input.gnomonLength,
+    input.shadowLength,
+    input.shadowDirection,
+    input.latitude
+  );
+  const theoretical = getTheoreticalSolarPosition(
+    input.measurementDateTime,
+    input.latitude,
+    input.longitude
+  );
+  const deviation = calculateDeviation(
+    theoretical,
+    inferred,
+    input.sundialType,
+    input.dialTiltAngle,
+    input.dialOrientation,
+    input.latitude
+  );
+  const theoreticalShadowLength = theoretical.altitude > 0 ? input.gnomonLength / Math.tan(toRad(theoretical.altitude)) : 9999;
+  const measuredShadowLength = input.shadowLength;
+  const theoreticalShadowAngle = normalizeAngle(theoretical.azimuth - 180);
+  const measuredShadowAngle = input.shadowDirection;
+  const comparison = {
+    shadowLength: createComparisonPoint(
+      Math.min(theoreticalShadowLength, 9999),
+      measuredShadowLength,
+      "m"
+    ),
+    shadowAngle: createComparisonPoint(
+      theoreticalShadowAngle,
+      measuredShadowAngle,
+      "°"
+    ),
+    solarAltitude: createComparisonPoint(theoretical.altitude, inferred.altitude, "°"),
+    solarAzimuth: createComparisonPoint(theoretical.azimuth, inferred.azimuth, "°"),
+    solarTime: createComparisonPoint(theoretical.solarTime, inferred.solarTime, "h")
+  };
+  const calibrationSteps = generateCalibrationSteps(deviation, input.sundialType);
+  const { score, confidence } = calculateQualityScore(deviation);
+  return {
+    inferredSolarPosition: inferred,
+    theoreticalSolarPosition: theoretical,
+    deviation,
+    comparison,
+    calibrationSteps,
+    qualityScore: score,
+    confidence
+  };
+}
+const DEFAULT_LATITUDE = 39.9;
+const DEFAULT_LONGITUDE = 116.4;
+const DEFAULT_GNOMON_LENGTH = 1;
+function createDefaultInput() {
+  const now = /* @__PURE__ */ new Date();
+  return {
+    gnomonLength: DEFAULT_GNOMON_LENGTH,
+    shadowLength: 1.2,
+    shadowDirection: 5,
+    measurementDateTime: now.toISOString(),
+    latitude: DEFAULT_LATITUDE,
+    longitude: DEFAULT_LONGITUDE,
+    sundialType: "horizontal",
+    dialTiltAngle: 0,
+    dialOrientation: 180
+  };
+}
+function createCalibrationStore() {
+  const input = writable(createDefaultInput());
+  const result = writable(null);
+  const photoAnalysis = writable(createEmptyPhotoAnalysis());
+  const isCalculating = writable(false);
+  const currentStep = writable(0);
+  const canCalibrate = derived([input], ([$input]) => {
+    return $input.gnomonLength > 0 && $input.shadowLength > 0 && $input.latitude >= -90 && $input.latitude <= 90;
+  });
+  function setInput(field, value) {
+    input.update((s) => ({ ...s, [field]: value }));
+  }
+  function updateInput(updates) {
+    input.update((s) => ({ ...s, ...updates }));
+  }
+  function resetInput() {
+    const defaultInput = createDefaultInput();
+    try {
+      const theoretical = getTheoreticalSolarPosition(
+        defaultInput.measurementDateTime,
+        defaultInput.latitude,
+        defaultInput.longitude
+      );
+      if (theoretical.altitude > 0) {
+        const theoreticalShadowLength = defaultInput.gnomonLength / Math.tan(theoretical.altitude * Math.PI / 180);
+        const theoreticalShadowDirection = (theoretical.azimuth + 180) % 360;
+        defaultInput.shadowLength = Math.max(0.1, theoreticalShadowLength * 0.95);
+        defaultInput.shadowDirection = (theoreticalShadowDirection + 8 + 360) % 360;
+      }
+    } catch (e) {
+    }
+    input.set(defaultInput);
+    result.set(null);
+    photoAnalysis.set(createEmptyPhotoAnalysis());
+    currentStep.set(0);
+  }
+  function calibrate() {
+    const $input = get(input);
+    isCalculating.set(true);
+    try {
+      const calibrationResult = performCalibration($input);
+      result.set(calibrationResult);
+      currentStep.set(0);
+      return calibrationResult;
+    } finally {
+      isCalculating.set(false);
+    }
+  }
+  async function calibrateAsync() {
+    isCalculating.set(true);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        try {
+          const $input = get(input);
+          const calibrationResult = performCalibration($input);
+          result.set(calibrationResult);
+          currentStep.set(0);
+          resolve(calibrationResult);
+        } catch {
+          resolve(null);
+        } finally {
+          isCalculating.set(false);
+        }
+      }, 300);
+    });
+  }
+  function setCurrentStep(step) {
+    currentStep.set(step);
+  }
+  function setPhotoAnalysis(analysis) {
+    photoAnalysis.set(analysis);
+  }
+  function applyPhotoAnalysisToInput(data) {
+    const $input = get(input);
+    input.set({
+      ...$input,
+      shadowLength: data.shadowLength || $input.shadowLength,
+      shadowDirection: data.shadowDirection || $input.shadowDirection
+    });
+  }
+  function saveRecord(name) {
+    const $result = get(result);
+    const $input = get(input);
+    const $photoAnalysis = get(photoAnalysis);
+    if (!$result) return false;
+    const record = measurementStore.addRecord(
+      $input,
+      $result,
+      $photoAnalysis,
+      name
+    );
+    return record !== null;
+  }
+  function loadRecord(record) {
+    input.set({ ...record.input });
+    result.set({ ...record.result });
+    if (record.photoAnalysis) {
+      photoAnalysis.set({ ...record.photoAnalysis });
+    } else {
+      photoAnalysis.set(createEmptyPhotoAnalysis());
+    }
+    currentStep.set(0);
+  }
+  return {
+    input,
+    result,
+    photoAnalysis,
+    isCalculating,
+    currentStep,
+    canCalibrate,
+    setInput,
+    updateInput,
+    resetInput,
+    calibrate,
+    calibrateAsync,
+    setCurrentStep,
+    setPhotoAnalysis,
+    applyPhotoAnalysisToInput,
+    saveRecord,
+    loadRecord
+  };
+}
+const calibrationStore = createCalibrationStore();
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
     const { activeRecords } = measurementStore;
-    const DEFAULT_LATITUDE = 39.9;
-    const DEFAULT_LONGITUDE = 116.4;
-    const DEFAULT_GNOMON_LENGTH = 1;
-    let input = createDefaultInput();
-    let result = null;
-    let currentStep = 0;
-    let isCalculating = false;
+    const {
+      input,
+      result,
+      isCalculating,
+      currentStep
+    } = calibrationStore;
     let activeTab = "input";
     let compareRecordIds = [];
-    function createDefaultInput() {
-      const now = /* @__PURE__ */ new Date();
-      return {
-        gnomonLength: DEFAULT_GNOMON_LENGTH,
-        shadowLength: 1.2,
-        shadowDirection: 5,
-        measurementDateTime: now.toISOString(),
-        latitude: DEFAULT_LATITUDE,
-        longitude: DEFAULT_LONGITUDE,
-        sundialType: "horizontal",
-        dialTiltAngle: 0,
-        dialOrientation: 180
-      };
-    }
+    let saveSuccessMsg = "";
     function getTabClass(tab) {
       const base = "px-3 py-2 text-xs rounded-lg transition-all flex items-center gap-1.5 ";
       if (activeTab === tab) {
@@ -1482,18 +1820,24 @@ function _page($$renderer, $$props) {
       $$renderer3.push(`<!----></button> <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">`);
       Target($$renderer3, { class: "w-5 h-5 text-white" });
       $$renderer3.push(`<!----></div> <div class="hidden sm:block"><h1 class="font-display text-lg font-bold text-amber-500 tracking-wider">AI 实景校准与报告中心</h1> <p class="text-xs text-slate-500">AI Sundial Calibration &amp; Report Center</p></div></div> <div class="flex items-center gap-2">`);
-      {
+      if (store_get($$store_subs ??= {}, "$result", result) && saveSuccessMsg) ;
+      else {
         $$renderer3.push("<!--[-1-->");
       }
       $$renderer3.push(`<!--]--> `);
-      {
+      if (store_get($$store_subs ??= {}, "$result", result)) {
+        $$renderer3.push("<!--[0-->");
+        $$renderer3.push(`<button class="hidden sm:flex px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-sm text-emerald-400 items-center gap-1.5 transition-colors">`);
+        Save($$renderer3, { class: "w-4 h-4" });
+        $$renderer3.push(`<!----> 保存记录</button>`);
+      } else {
         $$renderer3.push("<!--[-1-->");
       }
       $$renderer3.push(`<!--]--> <button class="px-3 py-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm border border-slate-600/50 transition-colors flex items-center gap-1.5">`);
       Refresh_cw($$renderer3, { class: "w-4 h-4" });
-      $$renderer3.push(`<!----> <span class="hidden sm:inline">重置</span></button> <button${attr("disabled", isCalculating, true)} class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 rounded-lg text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50">`);
+      $$renderer3.push(`<!----> <span class="hidden sm:inline">重置</span></button> <button${attr("disabled", store_get($$store_subs ??= {}, "$isCalculating", isCalculating), true)} class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 rounded-lg text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50">`);
       Play($$renderer3, { class: "w-4 h-4" });
-      $$renderer3.push(`<!----> <span class="hidden sm:inline">${escape_html("开始校准")}</span> <span class="sm:hidden">${escape_html("校准")}</span></button></div></div> <div class="max-w-[1800px] mx-auto px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto"><button${attr_class(clsx(getTabClass("input")))}>`);
+      $$renderer3.push(`<!----> <span class="hidden sm:inline">${escape_html(store_get($$store_subs ??= {}, "$isCalculating", isCalculating) ? "计算中..." : "开始校准")}</span> <span class="sm:hidden">${escape_html(store_get($$store_subs ??= {}, "$isCalculating", isCalculating) ? "..." : "校准")}</span></button></div></div> <div class="max-w-[1800px] mx-auto px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto"><button${attr_class(clsx(getTabClass("input")))}>`);
       Sliders($$renderer3, { class: "w-3.5 h-3.5" });
       $$renderer3.push(`<!----> 校准参数</button> <button${attr_class(clsx(getTabClass("photo")))}>`);
       Camera($$renderer3, { class: "w-3.5 h-3.5" });
@@ -1521,28 +1865,36 @@ function _page($$renderer, $$props) {
         $$renderer3.push(`<div class="grid grid-cols-12 gap-4 lg:gap-6 min-h-[calc(100vh-120px)]"><div class="col-span-12 lg:col-span-3 h-full">`);
         CalibrationInput($$renderer3, {
           get input() {
-            return input;
+            return store_get($$store_subs ??= {}, "$input", input);
           },
           set input($$value) {
-            input = $$value;
+            store_set(input, $$value);
             $$settled = false;
           }
         });
         $$renderer3.push(`<!----></div> <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 min-h-[400px] lg:min-h-0"><div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">`);
-        CalibrationResult($$renderer3, { result, input });
+        CalibrationResult($$renderer3, {
+          result: store_get($$store_subs ??= {}, "$result", result),
+          input: store_get($$store_subs ??= {}, "$input", input)
+        });
         $$renderer3.push(`<!----></div></div> <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full"><div class="flex-1 min-h-0 overflow-hidden">`);
         CalibrationSteps($$renderer3, {
-          steps: [],
+          steps: store_get($$store_subs ??= {}, "$result", result)?.calibrationSteps || [],
           get currentStep() {
-            return currentStep;
+            return store_get($$store_subs ??= {}, "$currentStep", currentStep);
           },
           set currentStep($$value) {
-            currentStep = $$value;
+            store_set(currentStep, $$value);
             $$settled = false;
           }
         });
         $$renderer3.push(`<!----></div> `);
-        {
+        if (store_get($$store_subs ??= {}, "$result", result)) {
+          $$renderer3.push("<!--[0-->");
+          $$renderer3.push(`<button class="sm:hidden w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 rounded-lg text-sm font-medium text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2">`);
+          Save($$renderer3, { class: "w-4 h-4" });
+          $$renderer3.push(`<!----> 保存测量记录</button>`);
+        } else {
           $$renderer3.push("<!--[-1-->");
         }
         $$renderer3.push(`<!--]--></div></div>`);

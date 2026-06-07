@@ -10,7 +10,7 @@
     applyAnalysisToInput,
     getDistance,
     getAngleBetweenPoints,
-  } from '$lib/utils/photoAnalysis';
+  } from '$lib/services/photoAnalysisService';
 
   export let photoDataUrl: string;
   export let gnomonLength: number;

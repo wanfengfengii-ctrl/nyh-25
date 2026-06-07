@@ -1,246 +1,45 @@
-export type SundialType = 'equatorial' | 'horizontal' | 'vertical';
+export type {
+  SundialType,
+  KeyDateMode,
+  SolarPosition,
+  AltitudePoint,
+} from './solar';
 
-export type KeyDateMode = 'single' | 'solstices' | 'equinoxes' | 'quarterly';
+export type {
+  ShadowPoint,
+  SundialState,
+  HourMark,
+} from './shadow';
 
-export interface SolarPosition {
-  altitude: number;
-  azimuth: number;
-  declination: number;
-  hourAngle: number;
-}
+export type {
+  Preset,
+  ComparePresetData,
+} from './preset';
+export { COMPARE_COLORS } from './preset';
 
-export interface ShadowPoint {
-  x: number;
-  y: number;
-  length: number;
-  angle: number;
-  hour: number;
-}
+export type {
+  CalibrationInput,
+  LocationPreset,
+  InferredSolarPosition,
+  DeviationAnalysis,
+  ComparisonPoint,
+  CalibrationResult,
+  CalibrationStep,
+} from './calibration';
+export { DEVIATION_METRICS } from './calibration';
 
-export interface Preset {
-  id: string;
-  name: string;
-  type: SundialType;
-  latitude: number;
-  date: string;
-  timeHours: number;
-  gnomonLength: number;
-  createdAt: number;
-}
+export type {
+  PhotoAnalysisPoint,
+  PhotoAnalysisResult,
+  PhotoExtractedMetadata,
+  MeasurementRecord,
+  ComparisonData,
+} from './measurement';
 
-export interface SundialState {
-  type: SundialType;
-  latitude: number;
-  date: string;
-  timeHours: number;
-  gnomonLength: number;
-  showTrack: boolean;
-  showCurrentPoint: boolean;
-  compareMode: boolean;
-  comparePresetIds: string[];
-  analysisMode: 'single' | 'yearly';
-  keyDateMode: KeyDateMode;
-}
+export type {
+  YearlyAnalysisData,
+  KeyDateTrackData,
+} from './analysis';
+export { KEY_DATES, KEY_DATE_COLORS } from './analysis';
 
-export interface ComparePresetData {
-  preset: Preset;
-  color: string;
-  shadow: ShadowPoint | null;
-  shadowTrack: ShadowPoint[];
-  sunriseSunset: { sunrise: number; sunset: number; dayLength: number };
-  solarPosition: SolarPosition;
-  sunVisible: boolean;
-  maxShadowLength: number;
-  noonShadowAngle: number;
-  noonShadowLength: number;
-  altitudeCurve: AltitudePoint[];
-}
-
-export interface AltitudePoint {
-  hour: number;
-  altitude: number;
-  azimuth: number;
-}
-
-export interface YearlyAnalysisData {
-  solstices: {
-    summer: { date: string; dayLength: number; maxAltitude: number };
-    winter: { date: string; dayLength: number; maxAltitude: number };
-  };
-  equinoxes: {
-    spring: { date: string; dayLength: number; maxAltitude: number };
-    autumn: { date: string; dayLength: number; maxAltitude: number };
-  };
-  quarterly: Array<{ date: string; dayLength: number; maxAltitude: number }>;
-  currentDay: { dayLength: number; maxAltitude: number };
-}
-
-export const COMPARE_COLORS = [
-  '#f59e0b',
-  '#3b82f6',
-  '#10b981',
-  '#8b5cf6',
-];
-
-export const KEY_DATES = {
-  solstices: [
-    { label: '夏至', month: 6, day: 21 },
-    { label: '冬至', month: 12, day: 21 },
-  ],
-  equinoxes: [
-    { label: '春分', month: 3, day: 20 },
-    { label: '秋分', month: 9, day: 23 },
-  ],
-  quarterly: [
-    { label: '立春', month: 2, day: 4 },
-    { label: '立夏', month: 5, day: 5 },
-    { label: '立秋', month: 8, day: 7 },
-    { label: '立冬', month: 11, day: 7 },
-  ],
-};
-
-export interface KeyDateTrackData {
-  label: string;
-  date: string;
-  color: string;
-  shadowTrack: ShadowPoint[];
-  altitudeCurve: AltitudePoint[];
-  sunriseSunset: { sunrise: number; sunset: number; dayLength: number };
-  maxAltitude: number;
-}
-
-export const KEY_DATE_COLORS = {
-  solstices: ['#ef4444', '#3b82f6'],
-  equinoxes: ['#10b981', '#f59e0b'],
-  quarterly: ['#22c55e', '#eab308', '#f97316', '#8b5cf6'],
-};
-
-export interface CalibrationInput {
-  gnomonLength: number;
-  shadowLength: number;
-  shadowDirection: number;
-  measurementDateTime: string;
-  latitude: number;
-  longitude: number;
-  sundialType: SundialType;
-  dialTiltAngle: number;
-  dialOrientation: number;
-  locationName?: string;
-  photoDataUrl?: string | null;
-}
-
-export interface LocationPreset {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-}
-
-export interface ExportReportData {
-  timestamp: string;
-  input: CalibrationInput;
-  result: CalibrationResult;
-}
-
-export interface InferredSolarPosition {
-  altitude: number;
-  azimuth: number;
-  declination: number;
-  hourAngle: number;
-  solarTime: number;
-}
-
-export interface DeviationAnalysis {
-  orientationDeviation: number;
-  tiltDeviation: number;
-  scaleError: number;
-  timeDeviation: number;
-}
-
-export interface ComparisonPoint {
-  theoretical: number;
-  measured: number;
-  difference: number;
-  unit: string;
-}
-
-export interface CalibrationResult {
-  inferredSolarPosition: InferredSolarPosition;
-  theoreticalSolarPosition: InferredSolarPosition;
-  deviation: DeviationAnalysis;
-  comparison: {
-    shadowLength: ComparisonPoint;
-    shadowAngle: ComparisonPoint;
-    solarAltitude: ComparisonPoint;
-    solarAzimuth: ComparisonPoint;
-    solarTime: ComparisonPoint;
-  };
-  calibrationSteps: CalibrationStep[];
-  qualityScore: number;
-  confidence: 'high' | 'medium' | 'low';
-}
-
-export interface CalibrationStep {
-  id: number;
-  title: string;
-  description: string;
-  adjustment: string;
-  direction: 'clockwise' | 'counterclockwise' | 'up' | 'down' | 'none';
-  magnitude: number;
-  unit: string;
-  priority: 'critical' | 'important' | 'minor';
-}
-
-export interface PhotoAnalysisPoint {
-  x: number;
-  y: number;
-}
-
-export interface PhotoAnalysisResult {
-  gnomonTip: PhotoAnalysisPoint | null;
-  gnomonBase: PhotoAnalysisPoint | null;
-  shadowTip: PhotoAnalysisPoint | null;
-  shadowBase: PhotoAnalysisPoint | null;
-  horizonLine: { start: PhotoAnalysisPoint; end: PhotoAnalysisPoint } | null;
-  gnomonLengthPixels: number;
-  shadowLengthPixels: number;
-  shadowAngle: number;
-  confidence: number;
-  method: 'auto' | 'manual';
-}
-
-export interface MeasurementRecord {
-  id: string;
-  name: string;
-  createdAt: number;
-  updatedAt: number;
-  input: CalibrationInput;
-  result: CalibrationResult;
-  photoAnalysis?: PhotoAnalysisResult | null;
-  notes?: string;
-  tags?: string[];
-  isArchived?: boolean;
-}
-
-export interface ComparisonData {
-  recordIds: string[];
-  records: MeasurementRecord[];
-  metric: 'orientationDeviation' | 'tiltDeviation' | 'scaleError' | 'timeDeviation' | 'qualityScore';
-}
-
-export interface PhotoExtractedMetadata {
-  dateTime?: string;
-  latitude?: number;
-  longitude?: number;
-  altitude?: number;
-  orientation?: number;
-  deviceMake?: string;
-  deviceModel?: string;
-}
-
-export const DEVIATION_METRICS = [
-  { key: 'orientationDeviation', label: '朝向偏差', unit: '°', color: '#f59e0b' },
-  { key: 'tiltDeviation', label: '倾角偏差', unit: '°', color: '#3b82f6' },
-  { key: 'scaleError', label: '刻度误差', unit: '%', color: '#10b981' },
-  { key: 'timeDeviation', label: '时间偏差', unit: 'min', color: '#8b5cf6' },
-] as const;
+export type { ExportReportData } from './report';

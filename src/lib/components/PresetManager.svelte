@@ -1,5 +1,6 @@
 <script lang="ts">
   import { sundialStore } from '$lib/stores/sundialStore';
+  import { presetStore } from '$lib/stores/presetStore';
   import { Save, Trash2, Copy, Play, Check, X } from 'lucide-svelte';
   import { get } from 'svelte/store';
   import type { SundialType } from '$lib/types';
@@ -7,13 +8,14 @@
 
   const {
     config,
-    presets,
     savePreset,
     loadPreset,
     deletePreset,
     setCompareMode,
     toggleComparePreset
   } = sundialStore;
+
+  const { presets } = presetStore;
 
   let newPresetName = $state('');
   let showSaveInput = $state(false);

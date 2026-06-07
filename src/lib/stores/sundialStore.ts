@@ -1,27 +1,32 @@
 import { writable, derived, get } from 'svelte/store';
-import type { SundialState, Preset, SolarPosition, ShadowPoint, SundialType, ComparePresetData, AltitudePoint, YearlyAnalysisData, KeyDateTrackData } from '$lib/types';
+import type {
+  SundialState,
+  SundialType,
+  ComparePresetData,
+  KeyDateTrackData,
+  KeyDateMode,
+  ShadowPoint,
+} from '$lib/types';
 import { COMPARE_COLORS, KEY_DATE_COLORS, KEY_DATES } from '$lib/types';
-import { getSolarPosition, isSunVisible, getSunriseSunset, getAltitudeCurve, getMaxAltitude, getYearlyAnalysisData } from '$lib/utils/astronomy';
-import { getShadow, getShadowTrackPoints, getHourMarks, getMaxShadowLength, getNoonShadow } from '$lib/utils/sundialMath';
+import {
+  getSolarPosition,
+  isSunVisible,
+  getSunriseSunset,
+  getAltitudeCurve,
+  getMaxAltitude,
+  getYearlyAnalysisData,
+} from '$lib/services/solarService';
+import {
+  getShadow,
+  getShadowTrackPoints,
+  getHourMarks,
+  getMaxShadowLength,
+  getNoonShadow,
+  getComparePresetShadowData,
+} from '$lib/services/shadowService';
+import { presetStore } from './presetStore';
 
-const STORAGE_KEY = 'sundial-presets';
-const MAX_PRESETS = 20;
 const MAX_COMPARE_PRESETS = 4;
-
-function loadPresets(): Preset[] {
-  if (typeof localStorage === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePresets(presets: Preset[]) {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
-}
 
 function createInitialState(): SundialState {
   const now = new Date();
@@ -36,17 +41,12 @@ function createInitialState(): SundialState {
     compareMode: false,
     comparePresetIds: [],
     analysisMode: 'single',
-    keyDateMode: 'single'
+    keyDateMode: 'single',
   };
 }
 
 function createSundialStore() {
   const config = writable<SundialState>(createInitialState());
-  const presets = writable<Preset[]>([]);
-
-  if (typeof localStorage !== 'undefined') {
-    presets.set(loadPresets());
-  }
 
   const currentDateTime = derived(config, ($config) => {
     const date = new Date($config.date);
@@ -84,80 +84,18 @@ function createSundialStore() {
     }
   );
 
-  const shadowTrack = derived(
-    [config, currentDateTime],
-    ([$config, $date]) => {
-      return getShadowTrackPoints(
-        $config.type,
-        $date,
-        $config.latitude,
-        $config.gnomonLength,
-        120
-      );
-    }
-  );
+  const shadowTrack = derived([config, currentDateTime], ([$config, $date]) => {
+    return getShadowTrackPoints(
+      $config.type,
+      $date,
+      $config.latitude,
+      $config.gnomonLength,
+      120
+    );
+  });
 
   const hourMarks = derived([config], ([$config]) => {
     return getHourMarks($config.type, $config.latitude, $config.gnomonLength);
-  });
-
-  const comparePresets = derived([config, presets], ([$config, $presets]) => {
-    if (!$config.compareMode || $config.comparePresetIds.length === 0) return [];
-    return $config.comparePresetIds
-      .map((id) => $presets.find((p) => p.id === id))
-      .filter((p): p is Preset => p !== undefined);
-  });
-
-  const comparePresetsData = derived([comparePresets], ([$comparePresets]) => {
-    if ($comparePresets.length === 0) return [];
-    
-    return $comparePresets.map((preset, index): ComparePresetData => {
-      const date = new Date(preset.date);
-      const hours = Math.floor(preset.timeHours);
-      const minutes = Math.floor((preset.timeHours - hours) * 60);
-      date.setHours(hours, minutes, 0, 0);
-      
-      const solarPos = getSolarPosition(date, preset.latitude, 0);
-      const visible = isSunVisible(date, preset.latitude, 0);
-      const shadow = visible 
-        ? getShadow(preset.type, solarPos, preset.latitude, preset.gnomonLength || 1) 
-        : null;
-      const track = getShadowTrackPoints(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1,
-        120
-      );
-      const ss = getSunriseSunset(date, preset.latitude, 0);
-      const maxLen = getMaxShadowLength(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1
-      );
-      const noonShadow = getNoonShadow(
-        preset.type,
-        date,
-        preset.latitude,
-        preset.gnomonLength || 1
-      );
-      const altCurve = getAltitudeCurve(date, preset.latitude, 0, 96);
-      
-      return {
-        preset,
-        color: COMPARE_COLORS[index % COMPARE_COLORS.length],
-        shadow,
-        shadowTrack: track,
-        sunriseSunset: ss,
-        solarPosition: solarPos,
-        sunVisible: visible,
-        maxShadowLength: maxLen,
-        noonShadowAngle: noonShadow?.angle ?? 0,
-        noonShadowLength: noonShadow?.length ?? 0,
-        altitudeCurve: altCurve
-      };
-    });
   });
 
   const maxShadowLength = derived([config, currentDateTime], ([$config, $date]) => {
@@ -178,13 +116,48 @@ function createSundialStore() {
     );
   });
 
+  const selectedComparePresets = derived(
+    [config, presetStore.presets],
+    ([$config, $presets]) => {
+      if (!$config.compareMode || $config.comparePresetIds.length === 0) return [];
+      return $config.comparePresetIds
+        .map((id) => $presets.find((p) => p.id === id))
+        .filter((p): p is NonNullable<typeof p> => p !== undefined);
+    }
+  );
+
+  const comparePresetsData = derived(
+    [selectedComparePresets, config],
+    ([$comparePresets, $config]) => {
+      if ($comparePresets.length === 0 || !$config.compareMode) return [];
+
+      return $comparePresets.map((preset, index): ComparePresetData => {
+        const shadowData = getComparePresetShadowData(preset);
+
+        return {
+          preset,
+          color: COMPARE_COLORS[index % COMPARE_COLORS.length],
+          shadow: shadowData.shadow,
+          shadowTrack: shadowData.shadowTrack,
+          sunriseSunset: shadowData.sunriseSunset,
+          solarPosition: shadowData.solarPosition,
+          sunVisible: shadowData.sunVisible,
+          maxShadowLength: shadowData.maxShadowLength,
+          noonShadowAngle: shadowData.noonShadowAngle,
+          noonShadowLength: shadowData.noonShadowLength,
+          altitudeCurve: shadowData.altitudeCurve,
+        };
+      });
+    }
+  );
+
   const keyDateTracks = derived([config, currentDateTime], ([$config, $date]) => {
     if ($config.keyDateMode === 'single') return [];
-    
+
     const year = $date.getFullYear();
     const dates = KEY_DATES[$config.keyDateMode];
     const colors = KEY_DATE_COLORS[$config.keyDateMode];
-    
+
     return dates.map((d, i): KeyDateTrackData => {
       const date = new Date(year, d.month - 1, d.day);
       const dateStr = date.toISOString().split('T')[0];
@@ -198,7 +171,7 @@ function createSundialStore() {
       const altCurve = getAltitudeCurve(date, $config.latitude, 0, 96);
       const ss = getSunriseSunset(date, $config.latitude, 0);
       const maxAlt = getMaxAltitude(date, $config.latitude, 0);
-      
+
       return {
         label: d.label,
         date: dateStr,
@@ -206,7 +179,7 @@ function createSundialStore() {
         shadowTrack: track,
         altitudeCurve: altCurve,
         sunriseSunset: ss,
-        maxAltitude: maxAlt
+        maxAltitude: maxAlt,
       };
     });
   });
@@ -242,21 +215,21 @@ function createSundialStore() {
   }
 
   function setCompareMode(enabled: boolean) {
-    config.update((s) => ({ 
-      ...s, 
+    config.update((s) => ({
+      ...s,
       compareMode: enabled,
-      comparePresetIds: enabled ? s.comparePresetIds : []
+      comparePresetIds: enabled ? s.comparePresetIds : [],
     }));
   }
 
-  function toggleComparePreset(id: string) {
+  function toggleComparePreset(id: string): boolean {
     const $config = get(config);
     const isSelected = $config.comparePresetIds.includes(id);
-    
+
     if (isSelected) {
       config.update((s) => ({
         ...s,
-        comparePresetIds: s.comparePresetIds.filter((pid) => pid !== id)
+        comparePresetIds: s.comparePresetIds.filter((pid) => pid !== id),
       }));
     } else {
       if ($config.comparePresetIds.length >= MAX_COMPARE_PRESETS) {
@@ -265,7 +238,7 @@ function createSundialStore() {
       config.update((s) => ({
         ...s,
         comparePresetIds: [...s.comparePresetIds, id],
-        compareMode: true
+        compareMode: true,
       }));
     }
     return true;
@@ -275,38 +248,24 @@ function createSundialStore() {
     config.update((s) => ({ ...s, analysisMode: mode }));
   }
 
-  function setKeyDateMode(mode: 'single' | 'solstices' | 'equinoxes' | 'quarterly') {
+  function setKeyDateMode(mode: KeyDateMode) {
     config.update((s) => ({ ...s, keyDateMode: mode }));
   }
 
   function savePreset(name: string): boolean {
     const $config = get(config);
-    const $presets = get(presets);
-    
-    if ($presets.length >= MAX_PRESETS) {
-      return false;
-    }
-    
-    const newPreset: Preset = {
-      id: Date.now().toString(),
-      name: name || `方案 ${$presets.length + 1}`,
+    const result = presetStore.createPresetFromConfig(name, {
       type: $config.type,
       latitude: $config.latitude,
       date: $config.date,
       timeHours: $config.timeHours,
       gnomonLength: $config.gnomonLength,
-      createdAt: Date.now()
-    };
-    
-    const updated = [...$presets, newPreset];
-    presets.set(updated);
-    savePresets(updated);
-    return true;
+    });
+    return result !== null;
   }
 
   function loadPreset(id: string) {
-    const $presets = get(presets);
-    const preset = $presets.find((p) => p.id === id);
+    const preset = presetStore.getPresetById(id);
     if (preset) {
       config.update((s) => ({
         ...s,
@@ -314,20 +273,17 @@ function createSundialStore() {
         latitude: preset.latitude,
         date: preset.date,
         timeHours: preset.timeHours,
-        gnomonLength: preset.gnomonLength
+        gnomonLength: preset.gnomonLength,
       }));
     }
   }
 
   function deletePreset(id: string) {
-    const $presets = get(presets);
-    const updated = $presets.filter((p) => p.id !== id);
-    presets.set(updated);
-    savePresets(updated);
-    
+    presetStore.deletePreset(id);
+
     config.update((s) => ({
       ...s,
-      comparePresetIds: s.comparePresetIds.filter((pid) => pid !== id)
+      comparePresetIds: s.comparePresetIds.filter((pid) => pid !== id),
     }));
   }
 
@@ -336,13 +292,12 @@ function createSundialStore() {
     config.update((s) => ({
       ...s,
       date: now.toISOString().split('T')[0],
-      timeHours: now.getHours() + now.getMinutes() / 60
+      timeHours: now.getHours() + now.getMinutes() / 60,
     }));
   }
 
   return {
     config,
-    presets,
     currentDateTime,
     solarPosition,
     sunVisible,
@@ -355,7 +310,7 @@ function createSundialStore() {
     maxShadowLength,
     noonShadow,
     keyDateTracks,
-    comparePresets,
+    selectedComparePresets,
     comparePresetsData,
     setType,
     setLatitude,
@@ -371,7 +326,7 @@ function createSundialStore() {
     savePreset,
     loadPreset,
     deletePreset,
-    resetToNow
+    resetToNow,
   };
 }
 
