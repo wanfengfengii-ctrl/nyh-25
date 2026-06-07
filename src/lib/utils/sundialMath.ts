@@ -15,7 +15,8 @@ function toDeg(rad: number): number {
 export function getEquatorialShadow(
   solarPos: SolarPosition,
   gnomonLength: number,
-  latitude: number
+  latitude: number,
+  hour?: number
 ): ShadowPoint | null {
   if (solarPos.altitude <= 0) return null;
   
@@ -34,13 +35,14 @@ export function getEquatorialShadow(
   const length = Math.sqrt(x * x + y * y);
   const angle = toDeg(Math.atan2(x, y));
   
-  return { x, y, length, angle };
+  return { x, y, length, angle, hour: hour ?? 12 + solarPos.hourAngle / 15 };
 }
 
 export function getHorizontalShadow(
   solarPos: SolarPosition,
   latitude: number,
-  gnomonLength: number
+  gnomonLength: number,
+  hour?: number
 ): ShadowPoint | null {
   if (solarPos.altitude <= 0) return null;
   
@@ -55,13 +57,14 @@ export function getHorizontalShadow(
   const length = shadowLength;
   const angle = solarPos.azimuth;
   
-  return { x, y, length, angle };
+  return { x, y, length, angle, hour: hour ?? 12 + solarPos.hourAngle / 15 };
 }
 
 export function getVerticalShadow(
   solarPos: SolarPosition,
   latitude: number,
-  gnomonLength: number
+  gnomonLength: number,
+  hour?: number
 ): ShadowPoint | null {
   if (solarPos.altitude <= 0) return null;
   
@@ -77,22 +80,23 @@ export function getVerticalShadow(
   const length = Math.sqrt(xWall * xWall + yWall * yWall);
   const angle = toDeg(Math.atan2(xWall, yWall));
   
-  return { x: xWall, y: -yWall, length, angle };
+  return { x: xWall, y: -yWall, length, angle, hour: hour ?? 12 + solarPos.hourAngle / 15 };
 }
 
 export function getShadow(
   type: SundialType,
   solarPos: SolarPosition,
   latitude: number,
-  gnomonLength: number
+  gnomonLength: number,
+  hour?: number
 ): ShadowPoint | null {
   switch (type) {
     case 'equatorial':
-      return getEquatorialShadow(solarPos, gnomonLength, latitude);
+      return getEquatorialShadow(solarPos, gnomonLength, latitude, hour);
     case 'horizontal':
-      return getHorizontalShadow(solarPos, latitude, gnomonLength);
+      return getHorizontalShadow(solarPos, latitude, gnomonLength, hour);
     case 'vertical':
-      return getVerticalShadow(solarPos, latitude, gnomonLength);
+      return getVerticalShadow(solarPos, latitude, gnomonLength, hour);
     default:
       return null;
   }
@@ -135,16 +139,13 @@ export function getShadowTrackPoints(
   const points: ShadowPoint[] = [];
   const { sunrise, sunset } = getSunriseSunset(date, latitude, 0);
   
-  const startTime = Math.max(0, Math.floor(sunrise));
-  const endTime = Math.min(24, Math.ceil(sunset));
-  
   for (let i = 0; i <= steps; i++) {
     const hour = sunrise + (sunset - sunrise) * (i / steps);
     const timeDate = new Date(date);
     timeDate.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
     
     const solarPos = getSolarPosition(timeDate, latitude, 0);
-    const shadow = getShadow(type, solarPos, latitude, gnomonLength);
+    const shadow = getShadow(type, solarPos, latitude, gnomonLength, hour);
     
     if (shadow) {
       points.push(shadow);
@@ -167,4 +168,29 @@ export function getHourMarks(
   }
   
   return marks;
+}
+
+export function getMaxShadowLength(
+  type: SundialType,
+  date: Date,
+  latitude: number,
+  gnomonLength: number
+): number {
+  const track = getShadowTrackPoints(type, date, latitude, gnomonLength, 96);
+  if (track.length === 0) return 0;
+  return Math.max(...track.map((p) => p.length));
+}
+
+export function getNoonShadow(
+  type: SundialType,
+  date: Date,
+  latitude: number,
+  gnomonLength: number
+): { angle: number; length: number } | null {
+  const noonDate = new Date(date);
+  noonDate.setHours(12, 0, 0, 0);
+  const solarPos = getSolarPosition(noonDate, latitude, 0);
+  const shadow = getShadow(type, solarPos, latitude, gnomonLength, 12);
+  if (!shadow) return null;
+  return { angle: shadow.angle, length: shadow.length };
 }

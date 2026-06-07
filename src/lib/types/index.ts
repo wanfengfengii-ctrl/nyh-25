@@ -12,6 +12,7 @@ export interface ShadowPoint {
   y: number;
   length: number;
   angle: number;
+  hour: number;
 }
 
 export interface Preset {
@@ -34,5 +35,64 @@ export interface SundialState {
   showTrack: boolean;
   showCurrentPoint: boolean;
   compareMode: boolean;
-  comparePresetId: string | null;
+  comparePresetIds: string[];
+  analysisMode: 'single' | 'yearly';
+  keyDateMode: 'single' | 'solstices' | 'equinoxes' | 'quarterly';
 }
+
+export interface ComparePresetData {
+  preset: Preset;
+  color: string;
+  shadow: ShadowPoint | null;
+  shadowTrack: ShadowPoint[];
+  sunriseSunset: { sunrise: number; sunset: number; dayLength: number };
+  solarPosition: SolarPosition;
+  sunVisible: boolean;
+  maxShadowLength: number;
+  noonShadowAngle: number;
+  noonShadowLength: number;
+  altitudeCurve: AltitudePoint[];
+}
+
+export interface AltitudePoint {
+  hour: number;
+  altitude: number;
+  azimuth: number;
+}
+
+export interface YearlyAnalysisData {
+  solstices: {
+    summer: { date: string; dayLength: number; maxAltitude: number };
+    winter: { date: string; dayLength: number; maxAltitude: number };
+  };
+  equinoxes: {
+    spring: { date: string; dayLength: number; maxAltitude: number };
+    autumn: { date: string; dayLength: number; maxAltitude: number };
+  };
+  quarterly: Array<{ date: string; dayLength: number; maxAltitude: number }>;
+  currentDay: { dayLength: number; maxAltitude: number };
+}
+
+export const COMPARE_COLORS = [
+  '#f59e0b',
+  '#3b82f6',
+  '#10b981',
+  '#8b5cf6',
+];
+
+export const KEY_DATES = {
+  solstices: [
+    { label: '夏至', month: 6, day: 21 },
+    { label: '冬至', month: 12, day: 21 },
+  ],
+  equinoxes: [
+    { label: '春分', month: 3, day: 20 },
+    { label: '秋分', month: 9, day: 23 },
+  ],
+  quarterly: [
+    { label: '立春', month: 2, day: 4 },
+    { label: '立夏', month: 5, day: 5 },
+    { label: '立秋', month: 8, day: 7 },
+    { label: '立冬', month: 11, day: 7 },
+  ],
+};

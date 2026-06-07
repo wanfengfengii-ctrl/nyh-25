@@ -3,7 +3,8 @@
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   import { sundialStore } from '$lib/stores/sundialStore';
   import { get } from 'svelte/store';
-  import type { SundialType, ShadowPoint } from '$lib/types';
+  import type { SundialType, ShadowPoint, ComparePresetData } from '$lib/types';
+  import { COMPARE_COLORS } from '$lib/types';
 
   const {
     config,
@@ -12,9 +13,7 @@
     currentShadow,
     shadowTrack,
     hourMarks,
-    compareShadow,
-    compareShadowTrack,
-    comparePreset
+    comparePresetsData
   } = sundialStore;
 
   let containerRef: HTMLDivElement | null = null;
@@ -29,10 +28,10 @@
   let dialPlate: THREE.Mesh;
   let dialPlateGroup: THREE.Group;
   let shadowMesh: THREE.Mesh;
-  let compareShadowMesh: THREE.Mesh;
   let trackLine: THREE.Line;
-  let compareTrackLine: THREE.Line;
   let hourMarkGroup: THREE.Group;
+  let compareShadowMeshes: THREE.Mesh[] = [];
+  let compareTrackLines: THREE.Line[] = [];
 
   let isMounted = $state(false);
 
@@ -130,15 +129,18 @@
     shadowMesh.visible = false;
     dialPlateGroup.add(shadowMesh);
 
-    const compareShadowGeo = new THREE.ConeGeometry(0.02, 2, 8);
-    const compareShadowMat = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
-      transparent: true,
-      opacity: 0.5
-    });
-    compareShadowMesh = new THREE.Mesh(compareShadowGeo, compareShadowMat);
-    compareShadowMesh.visible = false;
-    dialPlateGroup.add(compareShadowMesh);
+    for (let i = 0; i < 4; i++) {
+      const compShadowGeo = new THREE.ConeGeometry(0.02, 2, 8);
+      const compShadowMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(COMPARE_COLORS[i]),
+        transparent: true,
+        opacity: 0.5
+      });
+      const compMesh = new THREE.Mesh(compShadowGeo, compShadowMat);
+      compMesh.visible = false;
+      dialPlateGroup.add(compMesh);
+      compareShadowMeshes.push(compMesh);
+    }
 
     const trackGeo = new THREE.BufferGeometry();
     const trackMat = new THREE.LineBasicMaterial({
@@ -149,14 +151,18 @@
     trackLine = new THREE.Line(trackGeo, trackMat);
     dialPlateGroup.add(trackLine);
 
-    const compareTrackGeo = new THREE.BufferGeometry();
-    const compareTrackMat = new THREE.LineBasicMaterial({
-      color: 0x3b82f6,
-      transparent: true,
-      opacity: 0.6
-    });
-    compareTrackLine = new THREE.Line(compareTrackGeo, compareTrackMat);
-    dialPlateGroup.add(compareTrackLine);
+    for (let i = 0; i < 4; i++) {
+      const compTrackGeo = new THREE.BufferGeometry();
+      const compTrackMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color(COMPARE_COLORS[i]),
+        transparent: true,
+        opacity: 0.6
+      });
+      const compLine = new THREE.Line(compTrackGeo, compTrackMat);
+      compLine.visible = false;
+      dialPlateGroup.add(compLine);
+      compareTrackLines.push(compLine);
+    }
 
     const compassGroup = new THREE.Group();
     const compassMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
@@ -322,18 +328,25 @@
       positionShadowMesh(shadowMesh, shadow, cfg.type, cfg.latitude);
     }
 
-    const compShadow = get(compareShadow);
-    const compPreset = get(comparePreset);
-    if (!cfg.compareMode || !compShadow || !compPreset || !cfg.showCurrentPoint) {
-      compareShadowMesh.visible = false;
-    } else {
-      compareShadowMesh.visible = true;
-      positionShadowMesh(
-        compareShadowMesh,
-        compShadow,
-        compPreset.type,
-        compPreset.latitude
-      );
+    const compData = get(comparePresetsData);
+    
+    for (let i = 0; i < 4; i++) {
+      if (i < compData.length && cfg.compareMode && cfg.showCurrentPoint) {
+        const data = compData[i];
+        if (data.shadow && data.sunVisible) {
+          compareShadowMeshes[i].visible = true;
+          positionShadowMesh(
+            compareShadowMeshes[i],
+            data.shadow,
+            data.preset.type,
+            data.preset.latitude
+          );
+        } else {
+          compareShadowMeshes[i].visible = false;
+        }
+      } else {
+        compareShadowMeshes[i].visible = false;
+      }
     }
   }
 
@@ -381,18 +394,25 @@
       buildTrackLine(trackLine, track, cfg.type, cfg.latitude);
     }
 
-    const compTrack = get(compareShadowTrack);
-    const compPreset = get(comparePreset);
-    if (!cfg.compareMode || !compTrack || compTrack.length === 0 || !compPreset || !cfg.showTrack) {
-      compareTrackLine.visible = false;
-    } else {
-      compareTrackLine.visible = true;
-      buildTrackLine(
-        compareTrackLine,
-        compTrack,
-        compPreset.type,
-        compPreset.latitude
-      );
+    const compData = get(comparePresetsData);
+    
+    for (let i = 0; i < 4; i++) {
+      if (i < compData.length && cfg.compareMode && cfg.showTrack) {
+        const data = compData[i];
+        if (data.shadowTrack && data.shadowTrack.length > 0) {
+          compareTrackLines[i].visible = true;
+          buildTrackLine(
+            compareTrackLines[i],
+            data.shadowTrack,
+            data.preset.type,
+            data.preset.latitude
+          );
+        } else {
+          compareTrackLines[i].visible = false;
+        }
+      } else {
+        compareTrackLines[i].visible = false;
+      }
     }
   }
 
@@ -403,9 +423,7 @@
     const visible = $sunVisible;
     const shadow = $currentShadow;
     const track = $shadowTrack;
-    const compShadow = $compareShadow;
-    const compTrack = $compareShadowTrack;
-    const compPreset = $comparePreset;
+    const compData = $comparePresetsData;
     const marks = $hourMarks;
 
     updateSundialType();
@@ -440,10 +458,15 @@
     </div>
   {/if}
   
-  {#if $config.compareMode && $comparePreset}
-    <div class="absolute top-4 right-4 px-3 py-1.5 bg-blue-900/60 backdrop-blur-sm
-                rounded-lg border border-blue-500/40 text-xs text-blue-300 z-10">
-      对比: {$comparePreset.name}
+  {#if $config.compareMode && $comparePresetsData.length > 0}
+    <div class="absolute top-4 right-4 flex flex-col gap-1 z-10">
+      {#each $comparePresetsData as data, index}
+        <div class="px-3 py-1.5 backdrop-blur-sm rounded-lg border text-xs flex items-center gap-2"
+             style="background-color: {data.color}20; border-color: {data.color}60; color: {data.color}">
+          <span class="w-2 h-2 rounded-full" style="background-color: {data.color}"></span>
+          {data.preset.name}
+        </div>
+      {/each}
     </div>
   {/if}
   

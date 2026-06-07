@@ -3,12 +3,14 @@
   import SundialScene from '$lib/components/SundialScene.svelte';
   import ShadowTrack from '$lib/components/ShadowTrack.svelte';
   import PresetManager from '$lib/components/PresetManager.svelte';
+  import CompareSummary from '$lib/components/CompareSummary.svelte';
+  import YearlyAnalysis from '$lib/components/YearlyAnalysis.svelte';
   import { Sun } from 'lucide-svelte';
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white">
   <header class="border-b border-slate-700/40 backdrop-blur-sm bg-slate-900/30 sticky top-0 z-20">
-    <div class="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600
                     flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -22,13 +24,13 @@
         </div>
       </div>
       <div class="text-sm text-slate-400 hidden sm:block">
-        探索不同纬度、日期与时间的光影变化
+        多方案对比 · 全年太阳轨迹分析
       </div>
     </div>
   </header>
 
-  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
-    <div class="grid grid-cols-12 gap-6 h-[calc(100vh-120px)]">
+  <main class="max-w-[1800px] mx-auto px-4 sm:px-6 py-6">
+    <div class="grid grid-cols-12 gap-6 h-[calc(100vh-100px)]">
       <div class="col-span-12 lg:col-span-3 h-full overflow-hidden">
         <ControlPanel />
       </div>
@@ -37,10 +39,18 @@
         <div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">
           <SundialScene />
         </div>
+        <div class="h-[280px] flex-shrink-0">
+          <CompareSummary />
+        </div>
       </div>
 
       <div class="col-span-12 lg:col-span-3 flex flex-col gap-6 h-full overflow-hidden">
-        <ShadowTrack />
+        <div class="h-[380px] flex-shrink-0 overflow-hidden">
+          <ShadowTrack />
+        </div>
+        <div class="flex-1 min-h-0 overflow-hidden">
+          <YearlyAnalysis />
+        </div>
         <div class="flex-1 min-h-0 overflow-hidden">
           <PresetManager />
         </div>

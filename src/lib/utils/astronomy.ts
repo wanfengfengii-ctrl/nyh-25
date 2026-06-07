@@ -1,4 +1,4 @@
-import type { SolarPosition } from '$lib/types';
+import type { SolarPosition, AltitudePoint, YearlyAnalysisData } from '$lib/types';
 
 const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
@@ -123,4 +123,99 @@ export function getDayProgress(
   if (dayLength === 24) return 0.5;
   
   return Math.max(0, Math.min(1, (hours - sunrise) / dayLength));
+}
+
+export function getAltitudeCurve(
+  date: Date,
+  latitude: number,
+  longitude: number = 0,
+  steps: number = 96
+): AltitudePoint[] {
+  const points: AltitudePoint[] = [];
+  const { sunrise, sunset } = getSunriseSunset(date, latitude, longitude);
+  
+  for (let i = 0; i <= steps; i++) {
+    const hour = sunrise + (sunset - sunrise) * (i / steps);
+    const timeDate = new Date(date);
+    timeDate.setHours(Math.floor(hour), (hour % 1) * 60, 0, 0);
+    
+    const solarPos = getSolarPosition(timeDate, latitude, longitude);
+    points.push({
+      hour,
+      altitude: Math.max(0, solarPos.altitude),
+      azimuth: solarPos.azimuth
+    });
+  }
+  
+  return points;
+}
+
+export function getMaxAltitude(
+  date: Date,
+  latitude: number,
+  longitude: number = 0
+): number {
+  const dayOfYear = getDayOfYear(date);
+  const declination = getSolarDeclination(dayOfYear);
+  const latRad = toRad(latitude);
+  const decRad = toRad(declination);
+  
+  const sinMaxAlt = Math.sin(latRad) * Math.sin(decRad) + 
+                    Math.cos(latRad) * Math.cos(decRad);
+  return toDeg(Math.asin(Math.max(-1, Math.min(1, sinMaxAlt))));
+}
+
+function getKeyDate(
+  year: number,
+  month: number,
+  day: number,
+  latitude: number,
+  longitude: number = 0
+): { date: string; dayLength: number; maxAltitude: number } {
+  const date = new Date(year, month - 1, day);
+  const dateStr = date.toISOString().split('T')[0];
+  const { dayLength } = getSunriseSunset(date, latitude, longitude);
+  const maxAlt = getMaxAltitude(date, latitude, longitude);
+  return { date: dateStr, dayLength, maxAltitude: maxAlt };
+}
+
+export function getYearlyAnalysisData(
+  date: Date,
+  latitude: number,
+  longitude: number = 0
+): YearlyAnalysisData {
+  const year = date.getFullYear();
+  
+  const summerSolstice = getKeyDate(year, 6, 21, latitude, longitude);
+  const winterSolstice = getKeyDate(year, 12, 21, latitude, longitude);
+  const springEquinox = getKeyDate(year, 3, 20, latitude, longitude);
+  const autumnEquinox = getKeyDate(year, 9, 23, latitude, longitude);
+  
+  const quarterly = [
+    getKeyDate(year, 2, 4, latitude, longitude),
+    getKeyDate(year, 5, 5, latitude, longitude),
+    getKeyDate(year, 8, 7, latitude, longitude),
+    getKeyDate(year, 11, 7, latitude, longitude),
+  ];
+  
+  const currentDay = getKeyDate(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+    latitude,
+    longitude
+  );
+  
+  return {
+    solstices: {
+      summer: summerSolstice,
+      winter: winterSolstice
+    },
+    equinoxes: {
+      spring: springEquinox,
+      autumn: autumnEquinox
+    },
+    quarterly,
+    currentDay
+  };
 }
