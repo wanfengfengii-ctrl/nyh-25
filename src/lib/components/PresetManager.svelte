@@ -17,6 +17,8 @@
 
   let newPresetName = $state('');
   let showSaveInput = $state(false);
+  let maxLimitToast = $state(false);
+  let toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const typeLabels: Record<SundialType, string> = {
     equatorial: '赤道式',
@@ -45,7 +47,14 @@
   }
 
   function handleToggleCompare(presetId: string) {
-    toggleComparePreset(presetId);
+    const success = toggleComparePreset(presetId);
+    if (success === false) {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      maxLimitToast = true;
+      toastTimeout = setTimeout(() => {
+        maxLimitToast = false;
+      }, 2000);
+    }
   }
 
   function handleDelete(id: string) {
@@ -97,7 +106,14 @@
   });
 </script>
 
-<div class="glass-card p-5 h-full flex flex-col">
+<div class="glass-card p-5 h-full flex flex-col relative overflow-hidden">
+  {#if maxLimitToast}
+    <div class="absolute top-2 left-1/2 -translate-x-1/2 z-20 px-3 py-2 bg-red-500/90 text-white text-xs rounded-lg
+                shadow-lg shadow-red-500/30 animate-pulse">
+      最多只能对比 4 个方案
+    </div>
+  {/if}
+
   <div class="flex items-center justify-between mb-4">
     <h3 class="font-display text-base text-amber-500 font-semibold flex items-center gap-2">
       <Save class="w-4 h-4" />

@@ -1,6 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
-import type { SundialState, Preset, SolarPosition, ShadowPoint, SundialType, ComparePresetData, AltitudePoint, YearlyAnalysisData } from '$lib/types';
-import { COMPARE_COLORS } from '$lib/types';
+import type { SundialState, Preset, SolarPosition, ShadowPoint, SundialType, ComparePresetData, AltitudePoint, YearlyAnalysisData, KeyDateTrackData } from '$lib/types';
+import { COMPARE_COLORS, KEY_DATE_COLORS, KEY_DATES } from '$lib/types';
 import { getSolarPosition, isSunVisible, getSunriseSunset, getAltitudeCurve, getMaxAltitude, getYearlyAnalysisData } from '$lib/utils/astronomy';
 import { getShadow, getShadowTrackPoints, getHourMarks, getMaxShadowLength, getNoonShadow } from '$lib/utils/sundialMath';
 
@@ -178,6 +178,39 @@ function createSundialStore() {
     );
   });
 
+  const keyDateTracks = derived([config, currentDateTime], ([$config, $date]) => {
+    if ($config.keyDateMode === 'single') return [];
+    
+    const year = $date.getFullYear();
+    const dates = KEY_DATES[$config.keyDateMode];
+    const colors = KEY_DATE_COLORS[$config.keyDateMode];
+    
+    return dates.map((d, i): KeyDateTrackData => {
+      const date = new Date(year, d.month - 1, d.day);
+      const dateStr = date.toISOString().split('T')[0];
+      const track = getShadowTrackPoints(
+        $config.type,
+        date,
+        $config.latitude,
+        $config.gnomonLength,
+        120
+      );
+      const altCurve = getAltitudeCurve(date, $config.latitude, 0, 96);
+      const ss = getSunriseSunset(date, $config.latitude, 0);
+      const maxAlt = getMaxAltitude(date, $config.latitude, 0);
+      
+      return {
+        label: d.label,
+        date: dateStr,
+        color: colors[i],
+        shadowTrack: track,
+        altitudeCurve: altCurve,
+        sunriseSunset: ss,
+        maxAltitude: maxAlt
+      };
+    });
+  });
+
   function setType(type: SundialType) {
     config.update((s) => ({ ...s, type }));
   }
@@ -321,6 +354,7 @@ function createSundialStore() {
     hourMarks,
     maxShadowLength,
     noonShadow,
+    keyDateTracks,
     comparePresets,
     comparePresetsData,
     setType,

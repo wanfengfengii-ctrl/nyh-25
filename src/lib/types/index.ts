@@ -1,5 +1,7 @@
 export type SundialType = 'equatorial' | 'horizontal' | 'vertical';
 
+export type KeyDateMode = 'single' | 'solstices' | 'equinoxes' | 'quarterly';
+
 export interface SolarPosition {
   altitude: number;
   azimuth: number;
@@ -37,7 +39,7 @@ export interface SundialState {
   compareMode: boolean;
   comparePresetIds: string[];
   analysisMode: 'single' | 'yearly';
-  keyDateMode: 'single' | 'solstices' | 'equinoxes' | 'quarterly';
+  keyDateMode: KeyDateMode;
 }
 
 export interface ComparePresetData {
@@ -95,4 +97,20 @@ export const KEY_DATES = {
     { label: '立秋', month: 8, day: 7 },
     { label: '立冬', month: 11, day: 7 },
   ],
+};
+
+export interface KeyDateTrackData {
+  label: string;
+  date: string;
+  color: string;
+  shadowTrack: ShadowPoint[];
+  altitudeCurve: AltitudePoint[];
+  sunriseSunset: { sunrise: number; sunset: number; dayLength: number };
+  maxAltitude: number;
+}
+
+export const KEY_DATE_COLORS = {
+  solstices: ['#ef4444', '#3b82f6'],
+  equinoxes: ['#10b981', '#f59e0b'],
+  quarterly: ['#22c55e', '#eab308', '#f97316', '#8b5cf6'],
 };

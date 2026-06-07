@@ -60,7 +60,7 @@
 
   {#if !$config.compareMode || $comparePresetsData.length === 0}
     <div class="text-center py-6 text-slate-500 text-sm">
-      选择 2-4 个方案进行对比
+      选择 1-4 个方案进行对比
       <div class="text-xs mt-1 text-slate-600">
         在下方预设列表中点击对比按钮
       </div>

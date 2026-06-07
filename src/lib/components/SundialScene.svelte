@@ -13,7 +13,8 @@
     currentShadow,
     shadowTrack,
     hourMarks,
-    comparePresetsData
+    comparePresetsData,
+    keyDateTracks
   } = sundialStore;
 
   let containerRef: HTMLDivElement | null = null;
@@ -32,6 +33,7 @@
   let hourMarkGroup: THREE.Group;
   let compareShadowMeshes: THREE.Mesh[] = [];
   let compareTrackLines: THREE.Line[] = [];
+  let keyDateTrackLines: THREE.Line[] = [];
 
   let isMounted = $state(false);
 
@@ -162,6 +164,20 @@
       compLine.visible = false;
       dialPlateGroup.add(compLine);
       compareTrackLines.push(compLine);
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const kdTrackGeo = new THREE.BufferGeometry();
+      const kdTrackMat = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.7,
+        linewidth: 2
+      });
+      const kdLine = new THREE.Line(kdTrackGeo, kdTrackMat);
+      kdLine.visible = false;
+      dialPlateGroup.add(kdLine);
+      keyDateTrackLines.push(kdLine);
     }
 
     const compassGroup = new THREE.Group();
@@ -414,6 +430,27 @@
         compareTrackLines[i].visible = false;
       }
     }
+
+    const kdData = get(keyDateTracks);
+    for (let i = 0; i < 4; i++) {
+      if (i < kdData.length && cfg.showTrack) {
+        const data = kdData[i];
+        if (data.shadowTrack && data.shadowTrack.length > 0) {
+          keyDateTrackLines[i].visible = true;
+          (keyDateTrackLines[i].material as THREE.LineBasicMaterial).color.set(data.color);
+          buildTrackLine(
+            keyDateTrackLines[i],
+            data.shadowTrack,
+            cfg.type,
+            cfg.latitude
+          );
+        } else {
+          keyDateTrackLines[i].visible = false;
+        }
+      } else {
+        keyDateTrackLines[i].visible = false;
+      }
+    }
   }
 
   $effect(() => {
@@ -424,6 +461,7 @@
     const shadow = $currentShadow;
     const track = $shadowTrack;
     const compData = $comparePresetsData;
+    const kdTracks = $keyDateTracks;
     const marks = $hourMarks;
 
     updateSundialType();

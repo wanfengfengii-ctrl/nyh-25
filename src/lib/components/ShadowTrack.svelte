@@ -1,7 +1,7 @@
 <script lang="ts">
   import { sundialStore } from '$lib/stores/sundialStore';
   import { Activity, Eye, EyeOff, Circle, TrendingUp, Sun, Sunrise, Sunset } from 'lucide-svelte';
-  import type { ShadowPoint, AltitudePoint, ComparePresetData } from '$lib/types';
+  import type { ShadowPoint, AltitudePoint, ComparePresetData, KeyDateTrackData } from '$lib/types';
   import { get } from 'svelte/store';
   import { COMPARE_COLORS } from '$lib/types';
 
@@ -14,6 +14,7 @@
     altitudeCurve,
     solarPosition,
     comparePresetsData,
+    keyDateTracks,
     maxShadowLength,
     setShowTrack,
     setShowCurrentPoint,
@@ -37,8 +38,12 @@
   function getTrackScale(): number {
     const track = get(shadowTrack);
     const compData = get(comparePresetsData);
+    const kdData = get(keyDateTracks);
     const allTracks: ShadowPoint[] = [...(track || [])];
     for (const d of compData) {
+      allTracks.push(...d.shadowTrack);
+    }
+    for (const d of kdData) {
       allTracks.push(...d.shadowTrack);
     }
     if (!allTracks || allTracks.length === 0) return 0.05;
@@ -248,6 +253,19 @@
           {/each}
         {/if}
 
+        {#if $keyDateTracks.length > 0 && $config.showTrack}
+          {#each $keyDateTracks as data, index}
+            {#if data.shadowTrack && data.shadowTrack.length > 0}
+              <path d={getTrackPath(data.shadowTrack, getTrackScale())}
+                    fill="none"
+                    stroke={data.color}
+                    stroke-width="2.5"
+                    stroke-dasharray="8,4"
+                    opacity="0.8" />
+            {/if}
+          {/each}
+        {/if}
+
         {#if $config.showTrack}
           <path d={getTrackPath($shadowTrack, getTrackScale())}
                 fill="none"
@@ -358,6 +376,17 @@
           {/each}
         {/if}
 
+        {#if $keyDateTracks.length > 0}
+          {#each $keyDateTracks as data}
+            <path d={getAltitudePath(data.altitudeCurve)}
+                  fill="none"
+                  stroke={data.color}
+                  stroke-width="2"
+                  stroke-dasharray="6,4"
+                  opacity="0.85" />
+          {/each}
+        {/if}
+
         <path d={getAltitudeAreaPath($altitudeCurve)}
               fill="url(#altitudeGradient)" />
         <path d={getAltitudePath($altitudeCurve)}
@@ -406,6 +435,21 @@
           <div class="text-xs text-slate-400 flex gap-3 mt-1">
             <span>长度: {data.shadow ? data.shadow.length.toFixed(2) : '--'}</span>
             <span>角度: {data.shadow ? data.shadow.angle.toFixed(1) + '°' : '--'}</span>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
+
+  {#if $keyDateTracks.length > 0}
+    <div class="mt-3 space-y-1.5">
+      <div class="text-xs text-slate-500 mb-1">关键日期轨迹</div>
+      {#each $keyDateTracks as data}
+        <div class="flex items-center justify-between p-1.5 rounded-md"
+             style="background-color: {data.color}10; border-left: 3px solid {data.color}">
+          <div class="text-xs font-medium" style="color: {data.color}">{data.label}</div>
+          <div class="text-xs text-slate-400">
+            {data.sunriseSunset.dayLength.toFixed(1)}h · {data.maxAltitude.toFixed(0)}°
           </div>
         </div>
       {/each}
