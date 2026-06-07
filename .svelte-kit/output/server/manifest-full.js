@@ -10,11 +10,12 @@ return {
 	assets: new Set([]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.BAq-K6w4.js",app:"_app/immutable/entry/app.BRyozMoS.js",imports:["_app/immutable/entry/start.BAq-K6w4.js","_app/immutable/chunks/D4l4VEa5.js","_app/immutable/chunks/YK3oDBfS.js","_app/immutable/chunks/DxTIuSTY.js","_app/immutable/chunks/CHbX2CAS.js","_app/immutable/entry/app.BRyozMoS.js","_app/immutable/chunks/YK3oDBfS.js","_app/immutable/chunks/aaScoccQ.js","_app/immutable/chunks/BimzPX6F.js","_app/immutable/chunks/CHbX2CAS.js","_app/immutable/chunks/DQdumUKV.js","_app/immutable/chunks/DxTIuSTY.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.DlzA07sm.js",app:"_app/immutable/entry/app.C-YgjVIi.js",imports:["_app/immutable/entry/start.DlzA07sm.js","_app/immutable/chunks/Da9aMGFQ.js","_app/immutable/chunks/CbNMObeC.js","_app/immutable/chunks/Co30PYDo.js","_app/immutable/entry/app.C-YgjVIi.js","_app/immutable/chunks/CbNMObeC.js","_app/immutable/chunks/B5jYMjmH.js","_app/immutable/chunks/CccdY9tH.js","_app/immutable/chunks/Co30PYDo.js","_app/immutable/chunks/B11h_Szs.js","_app/immutable/chunks/CW55drJ9.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
-			__memo(() => import('./nodes/2.js'))
+			__memo(() => import('./nodes/2.js')),
+			__memo(() => import('./nodes/3.js'))
 		],
 		remotes: {
 			
@@ -25,6 +26,13 @@ return {
 				pattern: /^\/$/,
 				params: [],
 				page: { layouts: [0,], errors: [1,], leaf: 2 },
+				endpoint: null
+			},
+			{
+				id: "/calibration",
+				pattern: /^\/calibration\/?$/,
+				params: [],
+				page: { layouts: [0,], errors: [1,], leaf: 3 },
 				endpoint: null
 			}
 		],

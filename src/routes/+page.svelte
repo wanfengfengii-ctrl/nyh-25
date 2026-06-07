@@ -5,7 +5,8 @@
   import PresetManager from '$lib/components/PresetManager.svelte';
   import CompareSummary from '$lib/components/CompareSummary.svelte';
   import YearlyAnalysis from '$lib/components/YearlyAnalysis.svelte';
-  import { Sun } from 'lucide-svelte';
+  import { Sun, Compass } from 'lucide-svelte';
+  import { goto } from '$app/navigation';
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white">
@@ -23,8 +24,25 @@
           <p class="text-xs text-slate-500">Sundial Simulator</p>
         </div>
       </div>
-      <div class="text-sm text-slate-400 hidden sm:block">
-        多方案对比 · 全年太阳轨迹分析
+      <div class="flex items-center gap-4">
+        <nav class="flex items-center gap-1">
+          <button
+            class="px-3 py-1.5 text-sm text-amber-400 bg-amber-500/10 rounded-lg border border-amber-500/20"
+          >
+            模拟器
+          </button>
+          <button
+            onclick={() => goto('/calibration')}
+            class="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-lg
+                   border border-transparent hover:border-slate-600/50 transition-colors flex items-center gap-2"
+          >
+            <Compass class="w-4 h-4" />
+            校准测量
+          </button>
+        </nav>
+        <div class="text-sm text-slate-400 hidden sm:block">
+          多方案对比 · 全年太阳轨迹分析
+        </div>
       </div>
     </div>
   </header>

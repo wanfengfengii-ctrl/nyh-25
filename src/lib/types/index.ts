@@ -114,3 +114,64 @@ export const KEY_DATE_COLORS = {
   equinoxes: ['#10b981', '#f59e0b'],
   quarterly: ['#22c55e', '#eab308', '#f97316', '#8b5cf6'],
 };
+
+export interface CalibrationInput {
+  gnomonLength: number;
+  shadowLength: number;
+  shadowDirection: number;
+  measurementDateTime: string;
+  latitude: number;
+  longitude: number;
+  sundialType: SundialType;
+  dialTiltAngle: number;
+  dialOrientation: number;
+}
+
+export interface InferredSolarPosition {
+  altitude: number;
+  azimuth: number;
+  declination: number;
+  hourAngle: number;
+  solarTime: number;
+}
+
+export interface DeviationAnalysis {
+  orientationDeviation: number;
+  tiltDeviation: number;
+  scaleError: number;
+  timeDeviation: number;
+}
+
+export interface ComparisonPoint {
+  theoretical: number;
+  measured: number;
+  difference: number;
+  unit: string;
+}
+
+export interface CalibrationResult {
+  inferredSolarPosition: InferredSolarPosition;
+  theoreticalSolarPosition: InferredSolarPosition;
+  deviation: DeviationAnalysis;
+  comparison: {
+    shadowLength: ComparisonPoint;
+    shadowAngle: ComparisonPoint;
+    solarAltitude: ComparisonPoint;
+    solarAzimuth: ComparisonPoint;
+    solarTime: ComparisonPoint;
+  };
+  calibrationSteps: CalibrationStep[];
+  qualityScore: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface CalibrationStep {
+  id: number;
+  title: string;
+  description: string;
+  adjustment: string;
+  direction: 'clockwise' | 'counterclockwise' | 'up' | 'down' | 'none';
+  magnitude: number;
+  unit: string;
+  priority: 'critical' | 'important' | 'minor';
+}
