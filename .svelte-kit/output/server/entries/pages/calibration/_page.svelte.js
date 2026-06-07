@@ -1,7 +1,7 @@
-import { a as sanitize_props, b as spread_props, s as slot, c as ensure_array_like, d as attr_class, f as clsx, e as escape_html, h as attr, o as bind_props, p as fallback, j as attr_style } from "../../../chunks/index.js";
-import { I as Icon, S as Sun, G as Globe, C as Calendar, a as Compass, T as Trending_up } from "../../../chunks/trending-up.js";
+import { a as sanitize_props, b as spread_props, s as slot, c as ensure_array_like, d as attr_class, f as clsx, e as escape_html, h as attr, l as bind_props, m as fallback, j as attr_style, k as stringify, i as store_get, u as unsubscribe_stores } from "../../../chunks/index.js";
+import { I as Icon, S as Sun, G as Globe, C as Calendar, X, a as Compass, B as Bar_chart_3, T as Trending_up } from "../../../chunks/x.js";
+import { i as derived, w as writable, j as get } from "../../../chunks/exports.js";
 import "@sveltejs/kit/internal";
-import "../../../chunks/exports.js";
 import "../../../chunks/utils2.js";
 import "@sveltejs/kit/internal/server";
 import "../../../chunks/root.js";
@@ -158,6 +158,48 @@ function Arrow_up($$renderer, $$props) {
     }
   ]));
 }
+function Camera($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    [
+      "path",
+      {
+        "d": "M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"
+      }
+    ],
+    ["circle", { "cx": "12", "cy": "13", "r": "3" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "camera" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Camera
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMTQuNSA0aC01TDcgN0g0YTIgMiAwIDAgMC0yIDJ2OWEyIDIgMCAwIDAgMiAyaDE2YTIgMiAwIDAgMCAyLTJWOWEyIDIgMCAwIDAtMi0yaC0zbC0yLjUtM3oiIC8+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMyIgcj0iMyIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/camera
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 function Check_circle_2($$renderer, $$props) {
   const $$sanitized_props = sanitize_props($$props);
   /**
@@ -179,6 +221,246 @@ function Check_circle_2($$renderer, $$props) {
        * @description Lucide SVG icon component, renders SVG Element with children.
        *
        * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8cGF0aCBkPSJtOSAxMiAyIDIgNC00IiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/check-circle-2
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Chevron_down($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [["path", { "d": "m6 9 6 6 6-6" }]];
+  Icon($$renderer, spread_props([
+    { name: "chevron-down" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name ChevronDown
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJtNiA5IDYgNiA2LTYiIC8+Cjwvc3ZnPgo=) - https://lucide.dev/icons/chevron-down
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Crosshair($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["circle", { "cx": "12", "cy": "12", "r": "10" }],
+    ["line", { "x1": "22", "x2": "18", "y1": "12", "y2": "12" }],
+    ["line", { "x1": "6", "x2": "2", "y1": "12", "y2": "12" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "6", "y2": "2" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "22", "y2": "18" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "crosshair" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Crosshair
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8bGluZSB4MT0iMjIiIHgyPSIxOCIgeTE9IjEyIiB5Mj0iMTIiIC8+CiAgPGxpbmUgeDE9IjYiIHgyPSIyIiB5MT0iMTIiIHkyPSIxMiIgLz4KICA8bGluZSB4MT0iMTIiIHgyPSIxMiIgeTE9IjYiIHkyPSIyIiAvPgogIDxsaW5lIHgxPSIxMiIgeDI9IjEyIiB5MT0iMjIiIHkyPSIxOCIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/crosshair
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Download($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }],
+    ["polyline", { "points": "7 10 12 15 17 10" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "15", "y2": "3" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "download" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Download
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCIgLz4KICA8cG9seWxpbmUgcG9pbnRzPSI3IDEwIDEyIDE1IDE3IDEwIiAvPgogIDxsaW5lIHgxPSIxMiIgeDI9IjEyIiB5MT0iMTUiIHkyPSIzIiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/download
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Git_compare($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["circle", { "cx": "18", "cy": "18", "r": "3" }],
+    ["circle", { "cx": "6", "cy": "6", "r": "3" }],
+    ["path", { "d": "M13 6h3a2 2 0 0 1 2 2v7" }],
+    ["path", { "d": "M11 18H8a2 2 0 0 1-2-2V9" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "git-compare" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name GitCompare
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxOCIgY3k9IjE4IiByPSIzIiAvPgogIDxjaXJjbGUgY3g9IjYiIGN5PSI2IiByPSIzIiAvPgogIDxwYXRoIGQ9Ik0xMyA2aDNhMiAyIDAgMCAxIDIgMnY3IiAvPgogIDxwYXRoIGQ9Ik0xMSAxOEg4YTIgMiAwIDAgMS0yLTJWOSIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/git-compare
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function History($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    [
+      "path",
+      { "d": "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }
+    ],
+    ["path", { "d": "M3 3v5h5" }],
+    ["path", { "d": "M12 7v5l4 2" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "history" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name History
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMyAxMmE5IDkgMCAxIDAgOS05IDkuNzUgOS43NSAwIDAgMC02Ljc0IDIuNzRMMyA4IiAvPgogIDxwYXRoIGQ9Ik0zIDN2NWg1IiAvPgogIDxwYXRoIGQ9Ik0xMiA3djVsNCAyIiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/history
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Image($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    [
+      "rect",
+      {
+        "width": "18",
+        "height": "18",
+        "x": "3",
+        "y": "3",
+        "rx": "2",
+        "ry": "2"
+      }
+    ],
+    ["circle", { "cx": "9", "cy": "9", "r": "2" }],
+    ["path", { "d": "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "image" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Image
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cmVjdCB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHg9IjMiIHk9IjMiIHJ4PSIyIiByeT0iMiIgLz4KICA8Y2lyY2xlIGN4PSI5IiBjeT0iOSIgcj0iMiIgLz4KICA8cGF0aCBkPSJtMjEgMTUtMy4wODYtMy4wODZhMiAyIDAgMCAwLTIuODI4IDBMNiAyMSIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/image
        * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
        *
        * @param {Object} props - Lucide icons props and any valid SVG attribute
@@ -257,6 +539,46 @@ function List_checks($$renderer, $$props) {
        * @description Lucide SVG icon component, renders SVG Element with children.
        *
        * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJtMyAxNyAyIDIgNC00IiAvPgogIDxwYXRoIGQ9Im0zIDcgMiAyIDQtNCIgLz4KICA8cGF0aCBkPSJNMTMgNmg4IiAvPgogIDxwYXRoIGQ9Ik0xMyAxMmg4IiAvPgogIDxwYXRoIGQ9Ik0xMyAxOGg4IiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/list-checks
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
+function Map_pin($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    [
+      "path",
+      { "d": "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" }
+    ],
+    ["circle", { "cx": "12", "cy": "10", "r": "3" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "map-pin" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name MapPin
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMjAgMTBjMCA2LTggMTItOCAxMnMtOC02LTgtMTJhOCA4IDAgMCAxIDE2IDBaIiAvPgogIDxjaXJjbGUgY3g9IjEyIiBjeT0iMTAiIHI9IjMiIC8+Cjwvc3ZnPgo=) - https://lucide.dev/icons/map-pin
        * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
        *
        * @param {Object} props - Lucide icons props and any valid SVG attribute
@@ -511,6 +833,50 @@ function Ruler($$renderer, $$props) {
     }
   ]));
 }
+function Sliders($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["line", { "x1": "4", "x2": "4", "y1": "21", "y2": "14" }],
+    ["line", { "x1": "4", "x2": "4", "y1": "10", "y2": "3" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "21", "y2": "12" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "8", "y2": "3" }],
+    ["line", { "x1": "20", "x2": "20", "y1": "21", "y2": "16" }],
+    ["line", { "x1": "20", "x2": "20", "y1": "12", "y2": "3" }],
+    ["line", { "x1": "2", "x2": "6", "y1": "14", "y2": "14" }],
+    ["line", { "x1": "10", "x2": "14", "y1": "8", "y2": "8" }],
+    ["line", { "x1": "18", "x2": "22", "y1": "16", "y2": "16" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "sliders" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Sliders
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8bGluZSB4MT0iNCIgeDI9IjQiIHkxPSIyMSIgeTI9IjE0IiAvPgogIDxsaW5lIHgxPSI0IiB4Mj0iNCIgeTE9IjEwIiB5Mj0iMyIgLz4KICA8bGluZSB4MT0iMTIiIHgyPSIxMiIgeTE9IjIxIiB5Mj0iMTIiIC8+CiAgPGxpbmUgeDE9IjEyIiB4Mj0iMTIiIHkxPSI4IiB5Mj0iMyIgLz4KICA8bGluZSB4MT0iMjAiIHgyPSIyMCIgeTE9IjIxIiB5Mj0iMTYiIC8+CiAgPGxpbmUgeDE9IjIwIiB4Mj0iMjAiIHkxPSIxMiIgeTI9IjMiIC8+CiAgPGxpbmUgeDE9IjIiIHgyPSI2IiB5MT0iMTQiIHkyPSIxNCIgLz4KICA8bGluZSB4MT0iMTAiIHgyPSIxNCIgeTE9IjgiIHkyPSI4IiAvPgogIDxsaW5lIHgxPSIxOCIgeDI9IjIyIiB5MT0iMTYiIHkyPSIxNiIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/sliders
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 function Target($$renderer, $$props) {
   const $$sanitized_props = sanitize_props($$props);
   /**
@@ -549,6 +915,44 @@ function Target($$renderer, $$props) {
     }
   ]));
 }
+function Upload($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["path", { "d": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }],
+    ["polyline", { "points": "17 8 12 3 7 8" }],
+    ["line", { "x1": "12", "x2": "12", "y1": "3", "y2": "15" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "upload" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Upload
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCIgLz4KICA8cG9seWxpbmUgcG9pbnRzPSIxNyA4IDEyIDMgNyA4IiAvPgogIDxsaW5lIHgxPSIxMiIgeDI9IjEyIiB5MT0iMyIgeTI9IjE1IiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/upload
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 function CalibrationInput($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let input = $$props["input"];
@@ -557,6 +961,7 @@ function CalibrationInput($$renderer, $$props) {
       { value: "horizontal", label: "水平式", desc: "盘面水平放置" },
       { value: "vertical", label: "垂直式", desc: "盘面垂直南向" }
     ];
+    let isLocating = false;
     function getTypeBtnClass(typeValue) {
       const base = "w-full text-left px-3 py-2 rounded-lg transition-all duration-200 border ";
       if (input.sundialType === typeValue) {
@@ -583,9 +988,39 @@ function CalibrationInput($$renderer, $$props) {
     }
     $$renderer2.push(`<!--]--></div></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
     Globe($$renderer2, { class: "w-4 h-4" });
-    $$renderer2.push(`<!----> 地理位置</h3> <div class="space-y-3"><div><label class="text-xs text-slate-400 mb-1 block">纬度 (°)</label> <div class="flex items-center gap-2"><input type="range" min="-90" max="90" step="0.1"${attr("value", input.latitude)} class="flex-1 accent-amber-500"/> <input type="number" min="-90" max="90" step="0.1"${attr("value", input.latitude.toFixed(1))} class="w-20 px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-sm text-center focus:outline-none focus:border-amber-500/50"/></div></div> <div><label class="text-xs text-slate-400 mb-1 block">经度 (°)</label> <div class="flex items-center gap-2"><input type="range" min="-180" max="180" step="0.1"${attr("value", input.longitude)} class="flex-1 accent-amber-500"/> <input type="number" min="-180" max="180" step="0.1"${attr("value", input.longitude.toFixed(1))} class="w-20 px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-sm text-center focus:outline-none focus:border-amber-500/50"/></div></div></div></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
+    $$renderer2.push(`<!----> 地理位置</h3> <div class="relative mb-3"><button class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-left focus:outline-none focus:border-amber-500/50 text-slate-200 flex items-center justify-between hover:bg-slate-700/70 transition-colors"><span class="flex items-center gap-2">`);
+    Map_pin($$renderer2, { class: "w-4 h-4 text-amber-400" });
+    $$renderer2.push(`<!----> ${escape_html("选择城市...")}</span> `);
+    Chevron_down($$renderer2, { class: "w-4 h-4 text-slate-400" });
+    $$renderer2.push(`<!----></button> `);
+    {
+      $$renderer2.push("<!--[-1-->");
+    }
+    $$renderer2.push(`<!--]--></div> <button${attr("disabled", isLocating, true)} class="w-full mb-3 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-sm text-blue-400 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">`);
+    Crosshair($$renderer2, { class: `w-4 h-4 ${""}` });
+    $$renderer2.push(`<!----> ${escape_html("使用当前位置")}</button> `);
+    {
+      $$renderer2.push("<!--[-1-->");
+    }
+    $$renderer2.push(`<!--]--> <div class="space-y-3"><div><label class="text-xs text-slate-400 mb-1 block">纬度 (°)</label> <div class="flex items-center gap-2"><input type="range" min="-90" max="90" step="0.1"${attr("value", input.latitude)} class="flex-1 accent-amber-500"/> <input type="number" min="-90" max="90" step="0.1"${attr("value", input.latitude.toFixed(1))} class="w-20 px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-sm text-center focus:outline-none focus:border-amber-500/50"/></div></div> <div><label class="text-xs text-slate-400 mb-1 block">经度 (°)</label> <div class="flex items-center gap-2"><input type="range" min="-180" max="180" step="0.1"${attr("value", input.longitude)} class="flex-1 accent-amber-500"/> <input type="number" min="-180" max="180" step="0.1"${attr("value", input.longitude.toFixed(1))} class="w-20 px-2 py-1 bg-slate-700/50 border border-slate-600/50 rounded text-sm text-center focus:outline-none focus:border-amber-500/50"/></div></div></div></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
     Calendar($$renderer2, { class: "w-4 h-4" });
     $$renderer2.push(`<!----> 测量时间</h3> <input type="datetime-local"${attr("value", formatDateTimeLocal(input.measurementDateTime))} class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm focus:outline-none focus:border-amber-500/50 text-slate-100"/></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
+    Image($$renderer2, { class: "w-4 h-4" });
+    $$renderer2.push(`<!----> 现场照片</h3> `);
+    if (input.photoDataUrl) {
+      $$renderer2.push("<!--[0-->");
+      $$renderer2.push(`<div class="relative rounded-lg overflow-hidden border border-slate-600/50"><img${attr("src", input.photoDataUrl)} alt="现场照片" class="w-full h-auto"/> <button class="absolute top-2 right-2 w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full flex items-center justify-center text-white transition-colors">`);
+      X($$renderer2, { class: "w-4 h-4" });
+      $$renderer2.push(`<!----></button></div> <p class="text-xs text-slate-500 mt-2 text-center">点击右上角 × 可删除照片</p>`);
+    } else {
+      $$renderer2.push("<!--[-1-->");
+      $$renderer2.push(`<div class="space-y-2"><label class="block"><div class="border-2 border-dashed border-slate-600/50 rounded-lg p-5 text-center hover:border-amber-500/50 hover:bg-slate-700/20 transition-all cursor-pointer">`);
+      Upload($$renderer2, { class: "w-8 h-8 mx-auto mb-2 text-slate-500" });
+      $$renderer2.push(`<!----> <p class="text-sm text-slate-300 mb-1">上传现场照片</p> <p class="text-xs text-slate-500">支持 JPG、PNG 格式</p></div> <input type="file" accept="image/*" class="hidden"/></label> <label class="block"><div class="border-2 border-slate-600/30 rounded-lg p-3 text-center hover:border-blue-500/50 hover:bg-blue-500/10 transition-all cursor-pointer"><div class="flex items-center justify-center gap-2">`);
+      Camera($$renderer2, { class: "w-4 h-4 text-blue-400" });
+      $$renderer2.push(`<!----> <span class="text-xs text-blue-300">拍照（移动端）</span></div></div> <input type="file" accept="image/*" capture="environment" class="hidden"/></label></div>`);
+    }
+    $$renderer2.push(`<!--]--></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
     Ruler($$renderer2, { class: "w-4 h-4" });
     $$renderer2.push(`<!----> 实测数据</h3> <div class="space-y-3"><div><label class="text-xs text-slate-400 mb-1 block">晷针长度 (m)</label> <input type="number" min="0.1" max="100" step="0.01"${attr("value", input.gnomonLength)} class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm focus:outline-none focus:border-amber-500/50 text-slate-100"/></div> <div><label class="text-xs text-slate-400 mb-1 block">影长 (m)</label> <input type="number" min="0.01" max="1000" step="0.01"${attr("value", input.shadowLength)} class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm focus:outline-none focus:border-amber-500/50 text-slate-100"/></div> <div><label class="text-xs text-slate-400 mb-1 flex items-center justify-between"><span>影子方向 (°)</span> <span class="text-slate-300 font-mono">${escape_html(input.shadowDirection.toFixed(1))}°</span></label> <input type="range" min="0" max="360" step="0.5"${attr("value", input.shadowDirection)} class="w-full accent-amber-500"/> <div class="flex justify-between text-xs text-slate-500 mt-1"><span>0° 北</span> <span>90° 东</span> <span>180° 南</span> <span>270° 西</span></div></div></div></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
     Compass($$renderer2, { class: "w-4 h-4" });
@@ -599,9 +1034,28 @@ function formatTimeFromHours(hours) {
   const s = Math.floor(((hours - h) * 60 - m) * 60);
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
+function DeviationChart($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let result = fallback($$props["result"], null);
+    let height = fallback($$props["height"], 200);
+    $$renderer2.push(`<div class="glass-card p-4"><div class="flex items-center gap-2 mb-3">`);
+    Bar_chart_3($$renderer2, { class: "w-4 h-4 text-amber-500" });
+    $$renderer2.push(`<!----> <h3 class="font-display text-sm text-amber-500 font-semibold">偏差可视化</h3></div> `);
+    if (result) {
+      $$renderer2.push("<!--[0-->");
+      $$renderer2.push(`<div class="relative"><canvas class="w-full"${attr_style(`height: ${stringify(height)}px;`)}></canvas></div>`);
+    } else {
+      $$renderer2.push("<!--[-1-->");
+      $$renderer2.push(`<div${attr_class(`flex items-center justify-center h-[${stringify(height)}px] text-slate-500 text-sm`)}>暂无数据</div>`);
+    }
+    $$renderer2.push(`<!--]--></div>`);
+    bind_props($$props, { result, height });
+  });
+}
 function CalibrationResult($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let result = fallback($$props["result"], null);
+    let input = fallback($$props["input"], null);
     function getConfidenceColor(confidence) {
       switch (confidence) {
         case "high":
@@ -664,9 +1118,24 @@ function CalibrationResult($$renderer, $$props) {
     }
     if (result) {
       $$renderer2.push("<!--[0-->");
-      $$renderer2.push(`<div class="glass-card p-5 h-full overflow-y-auto"><div class="mb-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
+      $$renderer2.push(`<div class="glass-card p-5 h-full overflow-y-auto"><div class="flex items-center justify-between mb-5"><h3 class="font-display text-base text-amber-500 font-semibold flex items-center gap-2">`);
       Target($$renderer2, { class: "w-4 h-4" });
-      $$renderer2.push(`<!----> 校准质量评估</h3> <div${attr_class(`rounded-xl p-4 border ${getConfidenceBg(result.confidence)}`)}><div class="flex items-center justify-between mb-3"><span class="text-slate-300 text-sm">综合评分</span> <span${attr_class(`text-2xl font-bold ${getConfidenceColor(result.confidence)}`)}>${escape_html(result.qualityScore)} 分</span></div> <div class="w-full bg-slate-700/50 rounded-full h-2 mb-2"><div${attr_class(`h-2 rounded-full transition-all duration-500 ${result.qualityScore >= 80 ? "bg-emerald-500" : result.qualityScore >= 60 ? "bg-amber-500" : "bg-red-500"}`)}${attr_style(`width: ${result.qualityScore}%`)}></div></div> <div class="flex items-center justify-between text-xs"><span class="text-slate-500">可信度:</span> <span${attr_class(clsx(getConfidenceColor(result.confidence)))}>${escape_html(result.confidence === "high" ? "高" : result.confidence === "medium" ? "中" : "低")}</span></div></div></div> <div class="border-t border-slate-700/50 pt-5 mb-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
+      $$renderer2.push(`<!----> 校准质量评估</h3> <div class="relative"><button class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-sm text-emerald-400 flex items-center gap-1.5 transition-colors">`);
+      Download($$renderer2, { class: "w-4 h-4" });
+      $$renderer2.push(`<!----> 导出</button> `);
+      {
+        $$renderer2.push("<!--[-1-->");
+      }
+      $$renderer2.push(`<!--]--></div></div> <div class="mb-5"><div${attr_class(`rounded-xl p-4 border ${getConfidenceBg(result.confidence)}`)}><div class="flex items-center justify-between mb-3"><span class="text-slate-300 text-sm">综合评分</span> <span${attr_class(`text-2xl font-bold ${getConfidenceColor(result.confidence)}`)}>${escape_html(result.qualityScore)} 分</span></div> <div class="w-full bg-slate-700/50 rounded-full h-2 mb-2"><div${attr_class(`h-2 rounded-full transition-all duration-500 ${result.qualityScore >= 80 ? "bg-emerald-500" : result.qualityScore >= 60 ? "bg-amber-500" : "bg-red-500"}`)}${attr_style(`width: ${result.qualityScore}%`)}></div></div> <div class="flex items-center justify-between text-xs"><span class="text-slate-500">可信度:</span> <span${attr_class(clsx(getConfidenceColor(result.confidence)))}>${escape_html(result.confidence === "high" ? "高" : result.confidence === "medium" ? "中" : "低")}</span></div></div></div> `);
+      if (result) {
+        $$renderer2.push("<!--[0-->");
+        $$renderer2.push(`<div class="mb-5">`);
+        DeviationChart($$renderer2, { result, height: 180 });
+        $$renderer2.push(`<!----></div>`);
+      } else {
+        $$renderer2.push("<!--[-1-->");
+      }
+      $$renderer2.push(`<!--]--> <div class="border-t border-slate-700/50 pt-5 mb-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
       Trending_up($$renderer2, { class: "w-4 h-4" });
       $$renderer2.push(`<!----> 理论值 vs 实测值</h3> <div class="space-y-2"><div class="bg-slate-700/30 rounded-lg p-3"><div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400">影长</span> <span${attr_class(clsx(getDiffClass(result.comparison.shadowLength)))}>${escape_html(formatDifference(result.comparison.shadowLength))}</span></div> <div class="flex justify-between text-sm"><div><div class="text-xs text-slate-500">理论值</div> <div class="font-mono text-slate-200">${escape_html(formatComparisonValue(result.comparison.shadowLength))}</div></div> <div class="text-right"><div class="text-xs text-slate-500">实测值</div> <div class="font-mono text-slate-200">${escape_html(formatMeasuredValue(result.comparison.shadowLength))}</div></div></div></div> <div class="bg-slate-700/30 rounded-lg p-3"><div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400">影子角度</span> <span${attr_class(clsx(getDiffClass(result.comparison.shadowAngle)))}>${escape_html(formatDifference(result.comparison.shadowAngle))}</span></div> <div class="flex justify-between text-sm"><div><div class="text-xs text-slate-500">理论值</div> <div class="font-mono text-slate-200">${escape_html(formatComparisonValue(result.comparison.shadowAngle))}</div></div> <div class="text-right"><div class="text-xs text-slate-500">实测值</div> <div class="font-mono text-slate-200">${escape_html(formatMeasuredValue(result.comparison.shadowAngle))}</div></div></div></div> <div class="bg-slate-700/30 rounded-lg p-3"><div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400">太阳高度角</span> <span${attr_class(clsx(getDiffClass(result.comparison.solarAltitude)))}>${escape_html(formatDifference(result.comparison.solarAltitude))}</span></div> <div class="flex justify-between text-sm"><div><div class="text-xs text-slate-500">理论值</div> <div class="font-mono text-slate-200">${escape_html(formatComparisonValue(result.comparison.solarAltitude))}</div></div> <div class="text-right"><div class="text-xs text-slate-500">反推值</div> <div class="font-mono text-slate-200">${escape_html(formatMeasuredValue(result.comparison.solarAltitude))}</div></div></div></div> <div class="bg-slate-700/30 rounded-lg p-3"><div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400">太阳方位角</span> <span${attr_class(clsx(getDiffClass(result.comparison.solarAzimuth)))}>${escape_html(formatDifference(result.comparison.solarAzimuth))}</span></div> <div class="flex justify-between text-sm"><div><div class="text-xs text-slate-500">理论值</div> <div class="font-mono text-slate-200">${escape_html(formatComparisonValue(result.comparison.solarAzimuth))}</div></div> <div class="text-right"><div class="text-xs text-slate-500">反推值</div> <div class="font-mono text-slate-200">${escape_html(formatMeasuredValue(result.comparison.solarAzimuth))}</div></div></div></div> <div class="bg-slate-700/30 rounded-lg p-3"><div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400">真太阳时</span> <span${attr_class(clsx(getDiffClass(result.comparison.solarTime)))}>${escape_html(formatDifference(result.comparison.solarTime))}</span></div> <div class="flex justify-between text-sm"><div><div class="text-xs text-slate-500">理论值</div> <div class="font-mono text-slate-200">${escape_html(formatComparisonValue(result.comparison.solarTime))}</div></div> <div class="text-right"><div class="text-xs text-slate-500">反推值</div> <div class="font-mono text-slate-200">${escape_html(formatMeasuredValue(result.comparison.solarTime))}</div></div></div></div></div></div> <div class="border-t border-slate-700/50 pt-5"><h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">`);
       Alert_circle($$renderer2, { class: "w-4 h-4" });
@@ -682,7 +1151,7 @@ function CalibrationResult($$renderer, $$props) {
       $$renderer2.push(`<!----> <p class="text-sm">输入实测数据后点击"开始校准"</p> <p class="text-xs mt-1">查看偏差分析与校准建议</p></div></div>`);
     }
     $$renderer2.push(`<!--]-->`);
-    bind_props($$props, { result });
+    bind_props($$props, { result, input });
   });
 }
 function CalibrationSteps($$renderer, $$props) {
@@ -778,8 +1247,203 @@ function CalibrationSteps($$renderer, $$props) {
     bind_props($$props, { steps, currentStep });
   });
 }
+const STORAGE_KEY = "sundial-measurements";
+const MAX_RECORDS = 50;
+function loadRecords() {
+  if (typeof localStorage === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+function saveRecords(records) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+function createMeasurementStore() {
+  const records = writable([]);
+  const selectedRecordIds = writable([]);
+  const activeRecordId = writable(null);
+  if (typeof localStorage !== "undefined") {
+    records.set(loadRecords());
+  }
+  const activeRecord = derived([records, activeRecordId], ([$records, $activeId]) => {
+    if (!$activeId) return null;
+    return $records.find((r) => r.id === $activeId) || null;
+  });
+  const selectedRecords = derived([records, selectedRecordIds], ([$records, $selectedIds]) => {
+    return $records.filter((r) => $selectedIds.includes(r.id));
+  });
+  const activeRecords = derived(records, ($records) => {
+    return $records.filter((r) => !r.isArchived);
+  });
+  const archivedRecords = derived(records, ($records) => {
+    return $records.filter((r) => r.isArchived);
+  });
+  function addRecord(input, result, photoAnalysis, name) {
+    const $records = get(records);
+    if ($records.length >= MAX_RECORDS) {
+      return null;
+    }
+    const now = Date.now();
+    const dateStr = new Date(input.measurementDateTime).toLocaleDateString("zh-CN");
+    const newRecord = {
+      id: now.toString(),
+      name: name || `测量记录 ${$records.length + 1} - ${dateStr}`,
+      createdAt: now,
+      updatedAt: now,
+      input: { ...input },
+      result: { ...result },
+      photoAnalysis: photoAnalysis || null,
+      notes: "",
+      tags: [],
+      isArchived: false
+    };
+    const updated = [newRecord, ...$records];
+    records.set(updated);
+    saveRecords(updated);
+    return newRecord;
+  }
+  function updateRecord(id, updates) {
+    const $records = get(records);
+    const index = $records.findIndex((r) => r.id === id);
+    if (index === -1) return;
+    const updated = [...$records];
+    updated[index] = {
+      ...updated[index],
+      ...updates,
+      updatedAt: Date.now()
+    };
+    records.set(updated);
+    saveRecords(updated);
+  }
+  function deleteRecord(id) {
+    const $records = get(records);
+    const updated = $records.filter((r) => r.id !== id);
+    records.set(updated);
+    saveRecords(updated);
+    selectedRecordIds.update((ids) => ids.filter((i) => i !== id));
+    const $activeId = get(activeRecordId);
+    if ($activeId === id) {
+      activeRecordId.set(null);
+    }
+  }
+  function toggleArchive(id) {
+    const $records = get(records);
+    const record = $records.find((r) => r.id === id);
+    if (record) {
+      updateRecord(id, { isArchived: !record.isArchived });
+    }
+  }
+  function setActiveRecord(id) {
+    activeRecordId.set(id);
+  }
+  function toggleSelectRecord(id) {
+    selectedRecordIds.update((ids) => {
+      if (ids.includes(id)) {
+        return ids.filter((i) => i !== id);
+      }
+      return [...ids, id];
+    });
+  }
+  function clearSelection() {
+    selectedRecordIds.set([]);
+  }
+  function selectAll() {
+    const $active = get(activeRecords);
+    selectedRecordIds.set($active.map((r) => r.id));
+  }
+  function addTag(id, tag) {
+    const $records = get(records);
+    const record = $records.find((r) => r.id === id);
+    if (record && !record.tags?.includes(tag)) {
+      updateRecord(id, { tags: [...record.tags || [], tag] });
+    }
+  }
+  function removeTag(id, tag) {
+    const $records = get(records);
+    const record = $records.find((r) => r.id === id);
+    if (record) {
+      updateRecord(id, { tags: (record.tags || []).filter((t) => t !== tag) });
+    }
+  }
+  function exportRecordsJSON(ids) {
+    const $records = get(records);
+    const toExport = ids ? $records.filter((r) => ids.includes(r.id)) : $records;
+    const data = {
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      count: toExport.length,
+      records: toExport
+    };
+    return JSON.stringify(data, null, 2);
+  }
+  function importRecords(jsonStr) {
+    try {
+      const data = JSON.parse(jsonStr);
+      const importedRecords = data.records || [];
+      const $records = get(records);
+      const existingIds = new Set($records.map((r) => r.id));
+      const newRecords = importedRecords.filter((r) => !existingIds.has(r.id));
+      if (newRecords.length === 0) return 0;
+      const merged = [...newRecords, ...$records].slice(0, MAX_RECORDS);
+      records.set(merged);
+      saveRecords(merged);
+      return newRecords.length;
+    } catch {
+      return 0;
+    }
+  }
+  function loadRecordToInput(id) {
+    const $records = get(records);
+    const record = $records.find((r) => r.id === id);
+    if (record) {
+      return { ...record.input };
+    }
+    return null;
+  }
+  function getRecordsByTag(tag) {
+    const $records = get(records);
+    return $records.filter((r) => r.tags?.includes(tag));
+  }
+  function searchRecords(query) {
+    const $records = get(records);
+    const q = query.toLowerCase();
+    return $records.filter(
+      (r) => r.name.toLowerCase().includes(q) || r.notes?.toLowerCase().includes(q) || r.tags?.some((t) => t.toLowerCase().includes(q)) || r.input.locationName?.toLowerCase().includes(q)
+    );
+  }
+  return {
+    records,
+    activeRecords,
+    archivedRecords,
+    activeRecord,
+    activeRecordId,
+    selectedRecords,
+    selectedRecordIds,
+    addRecord,
+    updateRecord,
+    deleteRecord,
+    toggleArchive,
+    setActiveRecord,
+    toggleSelectRecord,
+    clearSelection,
+    selectAll,
+    addTag,
+    removeTag,
+    exportRecordsJSON,
+    importRecords,
+    loadRecordToInput,
+    getRecordsByTag,
+    searchRecords
+  };
+}
+const measurementStore = createMeasurementStore();
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    const { activeRecords } = measurementStore;
     const DEFAULT_LATITUDE = 39.9;
     const DEFAULT_LONGITUDE = 116.4;
     const DEFAULT_GNOMON_LENGTH = 1;
@@ -787,6 +1451,8 @@ function _page($$renderer, $$props) {
     let result = null;
     let currentStep = 0;
     let isCalculating = false;
+    let activeTab = "input";
+    let compareRecordIds = [];
     function createDefaultInput() {
       const now = /* @__PURE__ */ new Date();
       return {
@@ -801,41 +1467,91 @@ function _page($$renderer, $$props) {
         dialOrientation: 180
       };
     }
+    function getTabClass(tab) {
+      const base = "px-3 py-2 text-xs rounded-lg transition-all flex items-center gap-1.5 ";
+      if (activeTab === tab) {
+        return base + "bg-amber-500/20 text-amber-300 border border-amber-500/50";
+      }
+      return base + "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30 border border-transparent";
+    }
     let $$settled = true;
     let $$inner_renderer;
     function $$render_inner($$renderer3) {
-      $$renderer3.push(`<div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white"><header class="border-b border-slate-700/40 backdrop-blur-sm bg-slate-900/30 sticky top-0 z-20"><div class="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><button class="w-10 h-10 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 flex items-center justify-center border border-slate-600/50 transition-colors">`);
-      Arrow_left($$renderer3, { class: "w-5 h-5" });
-      $$renderer3.push(`<!----></button> <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">`);
-      Target($$renderer3, { class: "w-6 h-6 text-white" });
-      $$renderer3.push(`<!----></div> <div><h1 class="font-display text-xl font-bold text-amber-500 tracking-wider">日晷校准与实景测量</h1> <p class="text-xs text-slate-500">Sundial Calibration &amp; Field Measurement</p></div></div> <div class="flex items-center gap-2"><button class="px-4 py-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm border border-slate-600/50 transition-colors flex items-center gap-2">`);
+      $$renderer3.push(`<div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white"><header class="border-b border-slate-700/40 backdrop-blur-sm bg-slate-900/30 sticky top-0 z-20"><div class="max-w-[1800px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"><div class="flex items-center gap-3"><button class="w-9 h-9 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 flex items-center justify-center border border-slate-600/50 transition-colors">`);
+      Arrow_left($$renderer3, { class: "w-4 h-4" });
+      $$renderer3.push(`<!----></button> <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">`);
+      Target($$renderer3, { class: "w-5 h-5 text-white" });
+      $$renderer3.push(`<!----></div> <div class="hidden sm:block"><h1 class="font-display text-lg font-bold text-amber-500 tracking-wider">AI 实景校准与报告中心</h1> <p class="text-xs text-slate-500">AI Sundial Calibration &amp; Report Center</p></div></div> <div class="flex items-center gap-2">`);
+      {
+        $$renderer3.push("<!--[-1-->");
+      }
+      $$renderer3.push(`<!--]--> `);
+      {
+        $$renderer3.push("<!--[-1-->");
+      }
+      $$renderer3.push(`<!--]--> <button class="px-3 py-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm border border-slate-600/50 transition-colors flex items-center gap-1.5">`);
       Refresh_cw($$renderer3, { class: "w-4 h-4" });
-      $$renderer3.push(`<!----> 重置</button> <button${attr("disabled", isCalculating, true)} class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 rounded-lg text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-200 flex items-center gap-2 disabled:opacity-50">`);
+      $$renderer3.push(`<!----> <span class="hidden sm:inline">重置</span></button> <button${attr("disabled", isCalculating, true)} class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 rounded-lg text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50">`);
       Play($$renderer3, { class: "w-4 h-4" });
-      $$renderer3.push(`<!----> ${escape_html("开始校准")}</button></div></div></header> <main class="max-w-[1800px] mx-auto px-4 sm:px-6 py-6"><div class="grid grid-cols-12 gap-6 h-[calc(100vh-100px)]"><div class="col-span-12 lg:col-span-3 h-full overflow-hidden">`);
-      CalibrationInput($$renderer3, {
-        get input() {
-          return input;
-        },
-        set input($$value) {
-          input = $$value;
-          $$settled = false;
+      $$renderer3.push(`<!----> <span class="hidden sm:inline">${escape_html("开始校准")}</span> <span class="sm:hidden">${escape_html("校准")}</span></button></div></div> <div class="max-w-[1800px] mx-auto px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto"><button${attr_class(clsx(getTabClass("input")))}>`);
+      Sliders($$renderer3, { class: "w-3.5 h-3.5" });
+      $$renderer3.push(`<!----> 校准参数</button> <button${attr_class(clsx(getTabClass("photo")))}>`);
+      Camera($$renderer3, { class: "w-3.5 h-3.5" });
+      $$renderer3.push(`<!----> 照片分析</button> <button${attr_class(clsx(getTabClass("history")))}>`);
+      History($$renderer3, { class: "w-3.5 h-3.5" });
+      $$renderer3.push(`<!----> 历史记录 `);
+      if (store_get($$store_subs ??= {}, "$activeRecords", activeRecords).length > 0) {
+        $$renderer3.push("<!--[0-->");
+        $$renderer3.push(`<span class="bg-slate-600 text-slate-200 px-1.5 py-0.5 rounded text-xs">${escape_html(store_get($$store_subs ??= {}, "$activeRecords", activeRecords).length)}</span>`);
+      } else {
+        $$renderer3.push("<!--[-1-->");
+      }
+      $$renderer3.push(`<!--]--></button> `);
+      if (compareRecordIds.length > 0) {
+        $$renderer3.push("<!--[0-->");
+        $$renderer3.push(`<button${attr_class(clsx(getTabClass("compare")))}>`);
+        Git_compare($$renderer3, { class: "w-3.5 h-3.5" });
+        $$renderer3.push(`<!----> 对比</button>`);
+      } else {
+        $$renderer3.push("<!--[-1-->");
+      }
+      $$renderer3.push(`<!--]--></div></header> <main class="max-w-[1800px] mx-auto px-4 sm:px-6 py-4">`);
+      {
+        $$renderer3.push("<!--[0-->");
+        $$renderer3.push(`<div class="grid grid-cols-12 gap-4 lg:gap-6 min-h-[calc(100vh-120px)]"><div class="col-span-12 lg:col-span-3 h-full">`);
+        CalibrationInput($$renderer3, {
+          get input() {
+            return input;
+          },
+          set input($$value) {
+            input = $$value;
+            $$settled = false;
+          }
+        });
+        $$renderer3.push(`<!----></div> <div class="col-span-12 lg:col-span-5 flex flex-col gap-4 min-h-[400px] lg:min-h-0"><div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">`);
+        CalibrationResult($$renderer3, { result, input });
+        $$renderer3.push(`<!----></div></div> <div class="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full"><div class="flex-1 min-h-0 overflow-hidden">`);
+        CalibrationSteps($$renderer3, {
+          steps: [],
+          get currentStep() {
+            return currentStep;
+          },
+          set currentStep($$value) {
+            currentStep = $$value;
+            $$settled = false;
+          }
+        });
+        $$renderer3.push(`<!----></div> `);
+        {
+          $$renderer3.push("<!--[-1-->");
         }
-      });
-      $$renderer3.push(`<!----></div> <div class="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-[400px] lg:min-h-0 lg:h-full"><div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">`);
-      CalibrationResult($$renderer3, { result });
-      $$renderer3.push(`<!----></div></div> <div class="col-span-12 lg:col-span-4 flex flex-col gap-6 h-full overflow-hidden"><div class="flex-1 min-h-0 overflow-hidden">`);
-      CalibrationSteps($$renderer3, {
-        steps: [],
-        get currentStep() {
-          return currentStep;
-        },
-        set currentStep($$value) {
-          currentStep = $$value;
-          $$settled = false;
-        }
-      });
-      $$renderer3.push(`<!----></div></div></div></main></div>`);
+        $$renderer3.push(`<!--]--></div></div>`);
+      }
+      $$renderer3.push(`<!--]--></main> `);
+      {
+        $$renderer3.push("<!--[-1-->");
+      }
+      $$renderer3.push(`<!--]--></div>`);
     }
     do {
       $$settled = true;
@@ -843,6 +1559,7 @@ function _page($$renderer, $$props) {
       $$render_inner($$inner_renderer);
     } while (!$$settled);
     $$renderer2.subsume($$inner_renderer);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
   });
 }
 export {

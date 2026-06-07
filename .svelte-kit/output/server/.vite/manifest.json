@@ -12,20 +12,16 @@
   },
   "_exports.js": {
     "file": "chunks/exports.js",
-    "name": "exports"
+    "name": "exports",
+    "imports": [
+      "_index.js"
+    ]
   },
   "_index.js": {
     "file": "chunks/index.js",
     "name": "index",
     "imports": [
       "_render-context.js"
-    ]
-  },
-  "_index2.js": {
-    "file": "chunks/index2.js",
-    "name": "index",
-    "imports": [
-      "_index.js"
     ]
   },
   "_internal.js": {
@@ -60,13 +56,6 @@
       "_root.js"
     ]
   },
-  "_trending-up.js": {
-    "file": "chunks/trending-up.js",
-    "name": "trending-up",
-    "imports": [
-      "_index.js"
-    ]
-  },
   "_utils.js": {
     "file": "chunks/utils.js",
     "name": "utils",
@@ -78,6 +67,13 @@
   "_utils2.js": {
     "file": "chunks/utils2.js",
     "name": "utils"
+  },
+  "_x.js": {
+    "file": "chunks/x.js",
+    "name": "x",
+    "imports": [
+      "_index.js"
+    ]
   },
   "node_modules/@sveltejs/kit/src/runtime/app/server/remote/index.js": {
     "file": "remote-entry.js",
@@ -99,7 +95,6 @@
       "_state.svelte.js",
       "_exports.js",
       "_utils2.js",
-      "_index2.js",
       "_root.js"
     ]
   },
@@ -113,7 +108,6 @@
       "_server.js",
       "_exports.js",
       "_utils2.js",
-      "_index2.js",
       "_internal.js"
     ]
   },
@@ -126,7 +120,7 @@
       "_index.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.DwjSM8Z0.css"
+      "_app/immutable/assets/_layout.CjyNGvk-.css"
     ]
   },
   "src/routes/+page.svelte": {
@@ -136,9 +130,8 @@
     "isEntry": true,
     "imports": [
       "_index.js",
-      "_index2.js",
-      "_trending-up.js",
       "_exports.js",
+      "_x.js",
       "_utils2.js",
       "_root.js",
       "_state.svelte.js"
@@ -157,7 +150,7 @@
     "isEntry": true,
     "imports": [
       "_index.js",
-      "_trending-up.js",
+      "_x.js",
       "_exports.js",
       "_utils2.js",
       "_root.js",

@@ -1,4 +1,4 @@
-import { a as sanitize_props, q as rest_props, p as fallback, t as attributes, c as ensure_array_like, v as element, s as slot, o as bind_props, b as spread_props } from "./index.js";
+import { a as sanitize_props, r as rest_props, m as fallback, n as attributes, c as ensure_array_like, o as element, s as slot, l as bind_props, b as spread_props } from "./index.js";
 /**
  * @license lucide-svelte v0.344.0 - ISC
  *
@@ -67,6 +67,45 @@ function Icon($$renderer, $$props) {
       iconNode
     });
   });
+}
+function Bar_chart_3($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["path", { "d": "M3 3v18h18" }],
+    ["path", { "d": "M18 17V9" }],
+    ["path", { "d": "M13 17V5" }],
+    ["path", { "d": "M8 17v-3" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "bar-chart-3" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name BarChart3
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMyAzdjE4aDE4IiAvPgogIDxwYXRoIGQ9Ik0xOCAxN1Y5IiAvPgogIDxwYXRoIGQ9Ik0xMyAxN1Y1IiAvPgogIDxwYXRoIGQ9Ik04IDE3di0zIiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/bar-chart-3
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
 }
 function Calendar($$renderer, $$props) {
   const $$sanitized_props = sanitize_props($$props);
@@ -274,11 +313,50 @@ function Trending_up($$renderer, $$props) {
     }
   ]));
 }
+function X($$renderer, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.344.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const iconNode = [
+    ["path", { "d": "M18 6 6 18" }],
+    ["path", { "d": "m6 6 12 12" }]
+  ];
+  Icon($$renderer, spread_props([
+    { name: "x" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name X
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNMTggNiA2IDE4IiAvPgogIDxwYXRoIGQ9Im02IDYgMTIgMTIiIC8+Cjwvc3ZnPgo=) - https://lucide.dev/icons/x
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$renderer2) => {
+        $$renderer2.push(`<!--[-->`);
+        slot($$renderer2, $$props, "default", {});
+        $$renderer2.push(`<!--]-->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 export {
+  Bar_chart_3 as B,
   Calendar as C,
   Globe as G,
   Icon as I,
   Sun as S,
   Trending_up as T,
+  X,
   Compass as a
 };

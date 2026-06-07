@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { AlertCircle, CheckCircle, ArrowUp, ArrowDown, RotateCw, RotateCcw, Target, TrendingUp, Minus, Download, FileJson, FileText } from 'lucide-svelte';
+  import { AlertCircle, CheckCircle, ArrowUp, ArrowDown, RotateCw, RotateCcw, Target, TrendingUp, Minus, Download, FileJson, FileText, Image, Printer, File } from 'lucide-svelte';
   import type { CalibrationResult, CalibrationStep, ComparisonPoint, CalibrationInput } from '$lib/types';
   import { formatTimeFromHours, downloadJSONReport, downloadTextReport } from '$lib/utils/calibration';
+  import { downloadReportAsImage, printReport } from '$lib/utils/reportExport';
+  import DeviationChart from './DeviationChart.svelte';
 
   export let result: CalibrationResult | null = null;
   export let input: CalibrationInput | null = null;
@@ -17,6 +19,20 @@
   function handleExportText() {
     if (input && result) {
       downloadTextReport(input, result);
+    }
+    showExportMenu = false;
+  }
+
+  function handleExportImage() {
+    if (input && result) {
+      downloadReportAsImage(input, result, 'png');
+    }
+    showExportMenu = false;
+  }
+
+  function handlePrint() {
+    if (input && result) {
+      printReport(input, result);
     }
     showExportMenu = false;
   }
@@ -163,7 +179,7 @@
 
         {#if showExportMenu}
           <div class="absolute right-0 top-full mt-1 bg-slate-800 border border-slate-600/50 rounded-lg
-                      shadow-xl z-50 min-w-36 overflow-hidden">
+                      shadow-xl z-50 min-w-44 overflow-hidden">
             <button
               onclick={handleExportText}
               class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
@@ -179,6 +195,22 @@
             >
               <FileJson class="w-4 h-4 text-amber-400" />
               JSON 数据 (.json)
+            </button>
+            <button
+              onclick={handleExportImage}
+              class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
+                     flex items-center gap-2 transition-colors"
+            >
+              <Image class="w-4 h-4 text-purple-400" />
+              图片报告 (.png)
+            </button>
+            <button
+              onclick={handlePrint}
+              class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
+                     flex items-center gap-2 transition-colors"
+            >
+              <Printer class="w-4 h-4 text-emerald-400" />
+              打印 / 保存为 PDF
             </button>
           </div>
         {/if}
@@ -213,6 +245,12 @@
         </div>
       </div>
     </div>
+
+    {#if result}
+      <div class="mb-5">
+        <DeviationChart result={result} height={180} />
+      </div>
+    {/if}
 
     <div class="border-t border-slate-700/50 pt-5 mb-5">
       <h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">

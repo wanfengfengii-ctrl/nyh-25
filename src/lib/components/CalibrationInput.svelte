@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Calendar, Clock, Globe, Ruler, Compass, Sun, Upload, MapPin, Crosshair, X, Image as ImageIcon, ChevronDown } from 'lucide-svelte';
+  import { Calendar, Clock, Globe, Ruler, Compass, Sun, Upload, MapPin, Crosshair, X, Image as ImageIcon, ChevronDown, Camera } from 'lucide-svelte';
   import type { SundialType, CalibrationInput, LocationPreset } from '$lib/types';
 
   export let input: CalibrationInput;
@@ -103,6 +103,18 @@
   }
 
   function handlePhotoUpload(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      updateField('photoDataUrl', dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleCameraCapture(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
@@ -292,20 +304,38 @@
         点击右上角 × 可删除照片
       </p>
     {:else}
-      <label class="block">
-        <div class="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center
-                    hover:border-amber-500/50 hover:bg-slate-700/20 transition-all cursor-pointer">
-          <Upload class="w-10 h-10 mx-auto mb-2 text-slate-500" />
-          <p class="text-sm text-slate-300 mb-1">点击上传现场照片</p>
-          <p class="text-xs text-slate-500">支持 JPG、PNG 格式</p>
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          onchange={handlePhotoUpload}
-          class="hidden"
-        />
-      </label>
+      <div class="space-y-2">
+        <label class="block">
+          <div class="border-2 border-dashed border-slate-600/50 rounded-lg p-5 text-center
+                      hover:border-amber-500/50 hover:bg-slate-700/20 transition-all cursor-pointer">
+            <Upload class="w-8 h-8 mx-auto mb-2 text-slate-500" />
+            <p class="text-sm text-slate-300 mb-1">上传现场照片</p>
+            <p class="text-xs text-slate-500">支持 JPG、PNG 格式</p>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onchange={handlePhotoUpload}
+            class="hidden"
+          />
+        </label>
+        <label class="block">
+          <div class="border-2 border-slate-600/30 rounded-lg p-3 text-center
+                      hover:border-blue-500/50 hover:bg-blue-500/10 transition-all cursor-pointer">
+            <div class="flex items-center justify-center gap-2">
+              <Camera class="w-4 h-4 text-blue-400" />
+              <span class="text-xs text-blue-300">拍照（移动端）</span>
+            </div>
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onchange={handleCameraCapture}
+            class="hidden"
+          />
+        </label>
+      </div>
     {/if}
   </div>
 
