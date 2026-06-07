@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Calendar, Clock, Globe, Ruler, Compass, Sun, Upload } from 'lucide-svelte';
-  import type { SundialType, CalibrationInput } from '$lib/types';
+  import { Calendar, Clock, Globe, Ruler, Compass, Sun, Upload, MapPin, Crosshair, X, Image as ImageIcon, ChevronDown } from 'lucide-svelte';
+  import type { SundialType, CalibrationInput, LocationPreset } from '$lib/types';
 
   export let input: CalibrationInput;
 
@@ -9,6 +9,22 @@
     { value: 'horizontal', label: '水平式', desc: '盘面水平放置' },
     { value: 'vertical', label: '垂直式', desc: '盘面垂直南向' }
   ];
+
+  const locationPresets: LocationPreset[] = [
+    { id: 'beijing', name: '北京', latitude: 39.9, longitude: 116.4 },
+    { id: 'shanghai', name: '上海', latitude: 31.2, longitude: 121.5 },
+    { id: 'guangzhou', name: '广州', latitude: 23.1, longitude: 113.3 },
+    { id: 'chengdu', name: '成都', latitude: 30.7, longitude: 104.1 },
+    { id: 'xian', name: '西安', latitude: 34.3, longitude: 108.9 },
+    { id: 'hangzhou', name: '杭州', latitude: 30.3, longitude: 120.2 },
+    { id: 'nanjing', name: '南京', latitude: 32.1, longitude: 118.8 },
+    { id: 'wuhan', name: '武汉', latitude: 30.6, longitude: 114.3 },
+  ];
+
+  let isLocating = false;
+  let locateError = '';
+  let showLocationDropdown = false;
+  let selectedLocationName = '';
 
   function updateField<K extends keyof CalibrationInput>(
     field: K,
@@ -51,6 +67,66 @@
       updateField('measurementDateTime', new Date(val).toISOString());
     }
   }
+
+  function selectLocation(preset: LocationPreset) {
+    updateField('latitude', preset.latitude);
+    updateField('longitude', preset.longitude);
+    updateField('locationName', preset.name);
+    selectedLocationName = preset.name;
+    showLocationDropdown = false;
+  }
+
+  function getCurrentLocation() {
+    isLocating = true;
+    locateError = '';
+
+    if (!navigator.geolocation) {
+      locateError = '您的浏览器不支持定位功能';
+      isLocating = false;
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        updateField('latitude', position.coords.latitude);
+        updateField('longitude', position.coords.longitude);
+        updateField('locationName', '当前位置');
+        selectedLocationName = '当前位置';
+        isLocating = false;
+      },
+      (error) => {
+        locateError = '定位失败：' + error.message;
+        isLocating = false;
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  function handlePhotoUpload(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      updateField('photoDataUrl', dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    updateField('photoDataUrl', null);
+  }
+
+  function toggleLocationDropdown() {
+    showLocationDropdown = !showLocationDropdown;
+  }
+
+  function handleBlur() {
+    setTimeout(() => {
+      showLocationDropdown = false;
+    }, 200);
+  }
 </script>
 
 <div class="glass-card p-5 space-y-5 h-full overflow-y-auto">
@@ -77,6 +153,58 @@
       <Globe class="w-4 h-4" />
       地理位置
     </h3>
+
+    <div class="relative mb-3">
+      <button
+        onclick={toggleLocationDropdown}
+        onblur={handleBlur}
+        class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-left
+               focus:outline-none focus:border-amber-500/50 text-slate-200 flex items-center justify-between
+               hover:bg-slate-700/70 transition-colors"
+      >
+        <span class="flex items-center gap-2">
+          <MapPin class="w-4 h-4 text-amber-400" />
+          {selectedLocationName || '选择城市...'}
+        </span>
+        <ChevronDown class="w-4 h-4 text-slate-400" />
+      </button>
+
+      {#if showLocationDropdown}
+        <div class="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600/50 rounded-lg
+                    shadow-xl z-50 max-h-48 overflow-y-auto">
+          {#each locationPresets as preset}
+            <button
+              onclick={() => selectLocation(preset)}
+              class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
+                     first:rounded-t-lg last:rounded-b-lg transition-colors"
+            >
+              {preset.name}
+              <span class="text-xs text-slate-500 ml-2">
+                {preset.latitude.toFixed(1)}°N, {preset.longitude.toFixed(1)}°E
+              </span>
+            </button>
+          {/each}
+        </div>
+      {/if}
+    </div>
+
+    <button
+      onclick={getCurrentLocation}
+      disabled={isLocating}
+      class="w-full mb-3 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30
+             rounded-lg text-sm text-blue-400 flex items-center justify-center gap-2
+             disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    >
+      <Crosshair class="w-4 h-4 {isLocating ? 'animate-spin' : ''}" />
+      {isLocating ? '定位中...' : '使用当前位置'}
+    </button>
+
+    {#if locateError}
+      <div class="mb-3 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+        {locateError}
+      </div>
+    {/if}
+
     <div class="space-y-3">
       <div>
         <label class="text-xs text-slate-400 mb-1 block">纬度 (°)</label>
@@ -141,6 +269,44 @@
       class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm
              focus:outline-none focus:border-amber-500/50 text-slate-100"
     />
+  </div>
+
+  <div class="border-t border-slate-700/50 pt-5">
+    <h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">
+      <ImageIcon class="w-4 h-4" />
+      现场照片
+    </h3>
+
+    {#if input.photoDataUrl}
+      <div class="relative rounded-lg overflow-hidden border border-slate-600/50">
+        <img src={input.photoDataUrl} alt="现场照片" class="w-full h-auto" />
+        <button
+          onclick={removePhoto}
+          class="absolute top-2 right-2 w-8 h-8 bg-red-500/80 hover:bg-red-500 rounded-full
+                 flex items-center justify-center text-white transition-colors"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 mt-2 text-center">
+        点击右上角 × 可删除照片
+      </p>
+    {:else}
+      <label class="block">
+        <div class="border-2 border-dashed border-slate-600/50 rounded-lg p-6 text-center
+                    hover:border-amber-500/50 hover:bg-slate-700/20 transition-all cursor-pointer">
+          <Upload class="w-10 h-10 mx-auto mb-2 text-slate-500" />
+          <p class="text-sm text-slate-300 mb-1">点击上传现场照片</p>
+          <p class="text-xs text-slate-500">支持 JPG、PNG 格式</p>
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          onchange={handlePhotoUpload}
+          class="hidden"
+        />
+      </label>
+    {/if}
   </div>
 
   <div class="border-t border-slate-700/50 pt-5">

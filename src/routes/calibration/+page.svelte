@@ -132,7 +132,7 @@
 
       <div class="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-[400px] lg:min-h-0 lg:h-full">
         <div class="flex-1 glass-card rounded-xl overflow-hidden min-h-0">
-          <CalibrationResult {result} />
+          <CalibrationResult {result} {input} />
         </div>
       </div>
 

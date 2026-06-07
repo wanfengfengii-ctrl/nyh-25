@@ -1,9 +1,25 @@
 <script lang="ts">
-  import { AlertCircle, CheckCircle, ArrowUp, ArrowDown, RotateCw, RotateCcw, Target, TrendingUp, Minus } from 'lucide-svelte';
-  import type { CalibrationResult, CalibrationStep, ComparisonPoint } from '$lib/types';
-  import { formatTimeFromHours } from '$lib/utils/calibration';
+  import { AlertCircle, CheckCircle, ArrowUp, ArrowDown, RotateCw, RotateCcw, Target, TrendingUp, Minus, Download, FileJson, FileText } from 'lucide-svelte';
+  import type { CalibrationResult, CalibrationStep, ComparisonPoint, CalibrationInput } from '$lib/types';
+  import { formatTimeFromHours, downloadJSONReport, downloadTextReport } from '$lib/utils/calibration';
 
   export let result: CalibrationResult | null = null;
+  export let input: CalibrationInput | null = null;
+  let showExportMenu = false;
+
+  function handleExportJSON() {
+    if (input && result) {
+      downloadJSONReport(input, result);
+    }
+    showExportMenu = false;
+  }
+
+  function handleExportText() {
+    if (input && result) {
+      downloadTextReport(input, result);
+    }
+    showExportMenu = false;
+  }
 
   function getConfidenceColor(confidence: string): string {
     switch (confidence) {
@@ -128,11 +144,48 @@
 
 {#if result}
   <div class="glass-card p-5 h-full overflow-y-auto">
-    <div class="mb-5">
-      <h3 class="font-display text-base text-amber-500 font-semibold mb-3 flex items-center gap-2">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display text-base text-amber-500 font-semibold flex items-center gap-2">
         <Target class="w-4 h-4" />
         校准质量评估
       </h3>
+
+      <div class="relative">
+        <button
+          onclick={() => showExportMenu = !showExportMenu}
+          onblur={() => setTimeout(() => showExportMenu = false, 200)}
+          class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30
+                 rounded-lg text-sm text-emerald-400 flex items-center gap-1.5 transition-colors"
+        >
+          <Download class="w-4 h-4" />
+          导出
+        </button>
+
+        {#if showExportMenu}
+          <div class="absolute right-0 top-full mt-1 bg-slate-800 border border-slate-600/50 rounded-lg
+                      shadow-xl z-50 min-w-36 overflow-hidden">
+            <button
+              onclick={handleExportText}
+              class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
+                     flex items-center gap-2 transition-colors"
+            >
+              <FileText class="w-4 h-4 text-blue-400" />
+              文本报告 (.txt)
+            </button>
+            <button
+              onclick={handleExportJSON}
+              class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700/50
+                     flex items-center gap-2 transition-colors"
+            >
+              <FileJson class="w-4 h-4 text-amber-400" />
+              JSON 数据 (.json)
+            </button>
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <div class="mb-5">
       <div class={`rounded-xl p-4 border ${getConfidenceBg(result.confidence)}`}>
         <div class="flex items-center justify-between mb-3">
           <span class="text-slate-300 text-sm">综合评分</span>

@@ -125,6 +125,21 @@ export interface CalibrationInput {
   sundialType: SundialType;
   dialTiltAngle: number;
   dialOrientation: number;
+  locationName?: string;
+  photoDataUrl?: string | null;
+}
+
+export interface LocationPreset {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface ExportReportData {
+  timestamp: string;
+  input: CalibrationInput;
+  result: CalibrationResult;
 }
 
 export interface InferredSolarPosition {

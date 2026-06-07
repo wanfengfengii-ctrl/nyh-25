@@ -359,3 +359,166 @@ export function formatTimeFromHours(hours: number): string {
     .toString()
     .padStart(2, '0')}`;
 }
+
+export function generateTextReport(
+  input: CalibrationInput,
+  result: CalibrationResult
+): string {
+  const lines: string[] = [];
+
+  lines.push('═══════════════════════════════════════════════');
+  lines.push('           日晷校准报告');
+  lines.push('═══════════════════════════════════════════════');
+  lines.push('');
+
+  lines.push('一、测量信息');
+  lines.push('───────────────────────────────────────────────');
+  lines.push(`测量时间：${new Date(input.measurementDateTime).toLocaleString('zh-CN')}`);
+  if (input.locationName) {
+    lines.push(`地点：${input.locationName}`);
+  }
+  lines.push(`纬度：${input.latitude.toFixed(4)}°`);
+  lines.push(`经度：${input.longitude.toFixed(4)}°`);
+  lines.push(`日晷类型：${getSundialTypeName(input.sundialType)}`);
+  lines.push(`日晷朝向：${input.dialOrientation.toFixed(1)}°`);
+  lines.push(`日晷倾角：${input.dialTiltAngle.toFixed(1)}°`);
+  lines.push('');
+
+  lines.push('二、实测数据');
+  lines.push('───────────────────────────────────────────────');
+  lines.push(`晷针长度：${input.gnomonLength.toFixed(2)} m`);
+  lines.push(`影长：${input.shadowLength.toFixed(2)} m`);
+  lines.push(`影子方向：${input.shadowDirection.toFixed(1)}°`);
+  lines.push('');
+
+  lines.push('三、校准结果');
+  lines.push('───────────────────────────────────────────────');
+  lines.push(`质量评分：${result.qualityScore} / 100`);
+  lines.push(`可信度：${getConfidenceName(result.confidence)}`);
+  lines.push('');
+
+  lines.push('四、理论值 vs 实测值 对照');
+  lines.push('───────────────────────────────────────────────');
+  const cmp = result.comparison;
+  lines.push(`影长：`);
+  lines.push(`  理论值：${cmp.shadowLength.theoretical.toFixed(3)} ${cmp.shadowLength.unit}`);
+  lines.push(`  实测值：${cmp.shadowLength.measured.toFixed(3)} ${cmp.shadowLength.unit}`);
+  lines.push(`  偏差：  ${cmp.shadowLength.difference >= 0 ? '+' : ''}${cmp.shadowLength.difference.toFixed(3)} ${cmp.shadowLength.unit}`);
+  lines.push('');
+  lines.push(`影子角度：`);
+  lines.push(`  理论值：${cmp.shadowAngle.theoretical.toFixed(1)} ${cmp.shadowAngle.unit}`);
+  lines.push(`  实测值：${cmp.shadowAngle.measured.toFixed(1)} ${cmp.shadowAngle.unit}`);
+  lines.push(`  偏差：  ${cmp.shadowAngle.difference >= 0 ? '+' : ''}${cmp.shadowAngle.difference.toFixed(1)} ${cmp.shadowAngle.unit}`);
+  lines.push('');
+  lines.push(`太阳高度角：`);
+  lines.push(`  理论值：${cmp.solarAltitude.theoretical.toFixed(1)} ${cmp.solarAltitude.unit}`);
+  lines.push(`  实测值：${cmp.solarAltitude.measured.toFixed(1)} ${cmp.solarAltitude.unit}`);
+  lines.push(`  偏差：  ${cmp.solarAltitude.difference >= 0 ? '+' : ''}${cmp.solarAltitude.difference.toFixed(1)} ${cmp.solarAltitude.unit}`);
+  lines.push('');
+  lines.push(`太阳方位角：`);
+  lines.push(`  理论值：${cmp.solarAzimuth.theoretical.toFixed(1)} ${cmp.solarAzimuth.unit}`);
+  lines.push(`  实测值：${cmp.solarAzimuth.measured.toFixed(1)} ${cmp.solarAzimuth.unit}`);
+  lines.push(`  偏差：  ${cmp.solarAzimuth.difference >= 0 ? '+' : ''}${cmp.solarAzimuth.difference.toFixed(1)} ${cmp.solarAzimuth.unit}`);
+  lines.push('');
+  lines.push(`真太阳时：`);
+  lines.push(`  理论值：${formatTimeFromHours(cmp.solarTime.theoretical)}`);
+  lines.push(`  实测值：${formatTimeFromHours(cmp.solarTime.measured)}`);
+  lines.push(`  偏差：  ${cmp.solarTime.difference >= 0 ? '+' : ''}${(cmp.solarTime.difference * 60).toFixed(1)} 分钟`);
+  lines.push('');
+
+  lines.push('五、偏差分析');
+  lines.push('───────────────────────────────────────────────');
+  const dev = result.deviation;
+  lines.push(`朝向偏差：${dev.orientationDeviation >= 0 ? '偏东' : '偏西'} ${Math.abs(dev.orientationDeviation).toFixed(1)}°`);
+  lines.push(`倾角偏差：${dev.tiltDeviation >= 0 ? '偏大' : '偏小'} ${Math.abs(dev.tiltDeviation).toFixed(1)}°`);
+  lines.push(`刻度误差：${dev.scaleError >= 0 ? '+' : ''}${(dev.scaleError * 100).toFixed(1)}%`);
+  lines.push(`时间偏差：${dev.timeDeviation >= 0 ? '快' : '慢'} ${Math.abs(dev.timeDeviation * 60).toFixed(1)} 分钟`);
+  lines.push('');
+
+  lines.push('六、校准步骤');
+  lines.push('───────────────────────────────────────────────');
+  result.calibrationSteps.forEach((step, index) => {
+    lines.push(`${index + 1}. ${step.title}`);
+    lines.push(`   ${step.description}`);
+    lines.push(`   优先级：${getPriorityName(step.priority)}`);
+    if (step.adjustment) {
+      lines.push(`   调整建议：${step.adjustment}`);
+    }
+    lines.push('');
+  });
+
+  lines.push('═══════════════════════════════════════════════');
+  lines.push(`报告生成时间：${new Date().toLocaleString('zh-CN')}`);
+  lines.push('═══════════════════════════════════════════════');
+
+  return lines.join('\n');
+}
+
+function getSundialTypeName(type: SundialType): string {
+  const names: Record<SundialType, string> = {
+    equatorial: '赤道式',
+    horizontal: '水平式',
+    vertical: '垂直式',
+  };
+  return names[type] || type;
+}
+
+function getConfidenceName(confidence: string): string {
+  const names: Record<string, string> = {
+    high: '高',
+    medium: '中',
+    low: '低',
+  };
+  return names[confidence] || confidence;
+}
+
+function getPriorityName(priority: string): string {
+  const names: Record<string, string> = {
+    critical: '重要',
+    recommended: '建议',
+    minor: '轻微',
+  };
+  return names[priority] || priority;
+}
+
+export function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string = 'text/plain'
+): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function downloadJSONReport(
+  input: CalibrationInput,
+  result: CalibrationResult
+): void {
+  const report = {
+    timestamp: new Date().toISOString(),
+    input: {
+      ...input,
+      photoDataUrl: input.photoDataUrl ? '[照片数据已省略]' : null,
+    },
+    result,
+  };
+  const jsonStr = JSON.stringify(report, null, 2);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  downloadFile(jsonStr, `日晷校准报告_${timestamp}.json`, 'application/json');
+}
+
+export function downloadTextReport(
+  input: CalibrationInput,
+  result: CalibrationResult
+): void {
+  const text = generateTextReport(input, result);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  downloadFile(text, `日晷校准报告_${timestamp}.txt`, 'text/plain');
+}
